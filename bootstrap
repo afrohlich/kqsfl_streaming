@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# This script prepares a fresh server to be configured with ansible
+
+set -euo pipefail
+
+# To Do: Check for existing versions of dependencies
+
+echo -e '\n\n\n'
+echo 'Installing ansible dependencies'
+sudo apt update
+sudo apt install \
+   git \
+   python3.12 \
+   pipx
+echo 'Dependencies installed'
+
+# To Do: Check for existing ansible install
+
+echo -e '\n\n\n'
+echo 'Installing Ansible'
+pipx install ansible
+echo 'Ansible installed'
+
+echo -e '\n\n\n'
+echo 'You can now complete the rest of the server configuration with ansible'
