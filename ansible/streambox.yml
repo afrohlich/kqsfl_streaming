@@ -95,9 +95,12 @@
     - name: install restreamer
       block:
       - name: install restreamer
-        debug: msg='install restreamer'
+        community.docker.docker_image:
+          name: "datarhei/restreamer"
+          tag: "latest"
+          source: pull
 
-      - name: configure restreamer
+      - name: configure and start restreamer
         debug: msg='configure restreamer'
 
   
