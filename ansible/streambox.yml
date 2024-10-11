@@ -11,6 +11,41 @@
     - name: test
       command: whoami
 
+    - name: install docker
+      block:
+        - name: install required system packages
+          apt:
+            pkg:
+              - apt-transport-https
+              - ca-certificates
+              - curl
+              - software-properties-common
+              - python3-pip
+              - virtualenv
+              - python3-setuptools
+            state: latest
+            update_cache: true
+
+        - name: Add an Apt signing key, uses whichever key is at the URL
+          ansible.builtin.apt_key:
+            url: https://download.docker.com/linux/ubuntu/gpg
+            state: present
+
+        - name: add docker repository
+          apt_repository:
+            repo: "deb https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+            state: present
+
+        - name: update apt and install docker-ce
+          apt:
+            name: docker-ce
+            state: latest
+            update_cache: true
+
+        - name: install docker module for python
+          pip:
+            name: docker
+
     - name: configure google drive sync
       block:
         - name: install rclone
@@ -54,7 +89,7 @@
         - name: obs studio install
           ansible.builtin.apt:
             update_cache: yes
-            name: obs-studio=30.2.3-0obsproject1~noble
+            name: "obs-studio=30.2.3-0obsproject1~{{ ansible_distribution_release }}"
             # versions: https://launchpad.net/~obsproject/+archive/ubuntu/obs-studio
 
     - name: install restreamer
