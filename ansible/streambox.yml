@@ -10,4 +10,32 @@
   tasks:
     - name: test
       command: whoami
+
+    - name: configure google drive sync
+      block:
+        - name: install rclone
+          debug: msg='install rclone'
+
+        - name: configure rclone with google drive
+          debug: msg='configure gdrive'
+
+
+    - name: install obs studio
+      # https://obsproject.com/kb/linux-installation
+      block:
+        - name: obs studio add apt repo
+          ansible.builtin.apt_repository:
+            repo: ppa:obsproject/obs-studio
+
+        - name: obs studio install
+          ansible.builtin.apt:
+            update_cache: yes
+            name: obs-studio=30.2.3-0obsproject1~noble
+            # versions: https://launchpad.net/~obsproject/+archive/ubuntu/obs-studio
+
+    - name: install restreamer
+      block:
+
+
+    - name: configure
   
