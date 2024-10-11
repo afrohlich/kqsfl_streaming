@@ -103,4 +103,15 @@
       - name: configure and start restreamer
         debug: msg='configure restreamer'
 
-  
+    - name: install reverse proxy tunnel for external access
+      block:
+        # https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/get-started/create-remote-tunnel/
+        
+        - name: get cloudflare repo apt key
+          ansible.builtin.apt_key:
+            url: https://pkg.cloudflare.com/cloudflare-main.gpg 
+            state: present
+
+        - name: cloudflared add apt repo
+          ansible.builtin.apt_repository:
+            repo: "deb https://pkg.cloudflare.com/cloudflared {{ansible_distribution_release}} main"
