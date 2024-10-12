@@ -14,7 +14,7 @@
     - name: install docker
       block:
         - name: install required system packages
-          apt:
+          ansible.builtin.apt:
             pkg:
               - apt-transport-https
               - ca-certificates
@@ -32,12 +32,12 @@
             state: present
 
         - name: add docker repository
-          apt_repository:
+          ansible.builtin.apt_repository:
             repo: "deb https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
             state: present
 
         - name: update apt and install docker-ce
-          apt:
+          ansible.builtin.apt:
             name: docker-ce
             state: latest
             update_cache: true
@@ -112,6 +112,44 @@
             url: https://pkg.cloudflare.com/cloudflare-main.gpg 
             state: present
 
+        - name: cloudflared add apt repo remove
+          ansible.builtin.apt_repository:
+            repo: "deb https://pkg.cloudflare.com/cloudflared noble main"
+            state: absent
+
         - name: cloudflared add apt repo
           ansible.builtin.apt_repository:
-            repo: "deb https://pkg.cloudflare.com/cloudflared {{ansible_distribution_release}} main"
+            repo: "deb https://pkg.cloudflare.com/cloudflared jammy main"
+              # ubuntu 24 "noble" does not have an official release.
+              # See github issue
+              # Temporarily using 'jammy'
+              # https://github.com/cloudflare/cloudflared/issues/1235
+
+        - name: install cloudflared
+          ansible.builtin.apt:
+            name: cloudflared
+            state: present
+            update_cache: yes
+
+        - name: create cloudflare tunnel config
+          debug: msg='To Do'
+          when: false
+
+        - name: install cloudflare tunnel service
+          shell: cloudflared install service
+          when: false
+
+    - name: set up remote desktop software
+      block:
+        - name: install vnc server and dependencies
+          ansible.builtin.apt:
+            pkg:
+              - gnome-core
+              - gnome-panel
+              - ubuntu-gnome-desktop
+              - tightvncserver
+            state: present
+            update_cache: yes
+
+        - name: create vnc server
+          shell: echo 'setup tightvnc'
