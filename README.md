@@ -10,4 +10,5 @@
 - `./bootstrap`
 - clone this repo
 - go to the `ansible` directory of this repository
-- Run the following `ansible-playbook streambox.yml -c local -K -u stream-admin`
+- Run `ansible-galaxy install -r requirements.yml`
+- Run `ansible-playbook streambox.yml -c local -K -u stream-admin`
