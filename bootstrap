@@ -20,6 +20,7 @@ echo 'Dependencies installed'
 echo -e '\n\n\n'
 echo 'Installing Ansible'
 pipx install ansible
+pipx ensurepath
 echo 'Ansible installed'
 
 echo -e '\n\n\n'
