@@ -8,4 +8,6 @@
 - Download `bootstrap` from this repository
 - `chmod +x bootstrap`
 - `./bootstrap`
-
+- clone this repo
+- go to the `ansible` directory of this repository
+- Run the following `ansible-playbook streambox.yml -c local -K -u stream-admin`
