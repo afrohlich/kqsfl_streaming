@@ -16,6 +16,9 @@
         - name: install networking tools
           ansible.builtin.apt:
             pkg:
+              - vim
+              - screen
+              - tmux
               - net-tools
             update_cache: true
 
