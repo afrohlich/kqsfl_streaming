@@ -11,6 +11,14 @@
     - name: test
       command: whoami
 
+    - name: install basic management tools
+      block:
+        - name: install networking tools
+          ansible.builtin.apt:
+            pkg:
+              - net-tools
+            update_cache: true
+
     - name: install docker
       block:
         - name: install required system packages
