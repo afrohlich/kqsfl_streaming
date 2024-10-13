@@ -9,7 +9,7 @@ set -euo pipefail
 echo -e '\n\n\n'
 echo 'Installing ansible dependencies'
 sudo apt update
-sudo apt install \
+sudo apt install -y \
    git \
    python3.12 \
    pipx
