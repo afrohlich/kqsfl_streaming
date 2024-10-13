@@ -152,9 +152,6 @@
         - name: install vnc server and dependencies
           ansible.builtin.apt:
             pkg:
-              - gnome-core
-              - gnome-panel
-              - ubuntu-gnome-desktop
               - tightvncserver
             state: present
             update_cache: yes
