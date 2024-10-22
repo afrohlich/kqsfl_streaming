@@ -6,10 +6,17 @@
   connection: local
   become: yes
   become_user: root
+  vars_files:
+    - "{{ lookup('env', 'HOME') }}/.streambox_vars.yml"
+    - "{{ lookup('env', 'HOME') }}/.streambox_credentials.yml"
 
   tasks:
     - name: test
       command: whoami
+
+    - name: test vars
+      debug:
+        msg: "{{stream_user_username}}"
 
     - name: install basic management tools
       block:
@@ -152,12 +159,64 @@
 
     - name: set up remote desktop software
       block:
-        - name: install vnc server and dependencies
-          ansible.builtin.apt:
-            pkg:
-              - tightvncserver
-            state: present
-            update_cache: yes
+        - name: gnome remote desktop setup
+          block:
+            # This will set up the default ubuntu RDP server for the stream user account
+            # The server is not encrypted and is intended to be used over an SSH Tunnel
+            # Same-user RDP (shared session) is on port 3389
+            # A completely new login session can be created by connecting to port 3390. This feature must be enabled via the GUI
 
-        - name: create vnc server
-          shell: echo 'setup tightvnc'
+            - name: install gnome remote desktop
+              ansible.builtin.apt:
+                pkg: gnome-remote-desktop
+                update_cache: yes
+
+            - name: grd get status
+              become_user: "{{stream_user_username}}"
+              become: yes
+              shell: grdctl status
+
+            - name: grd set user rdp credentials
+              become_user: "{{stream_user_username}}"
+              become: yes
+              shell: |
+                grdctl rdp enable
+                grdctl rdp set-credentials {{stream_user_username}} {{stream_user_password}}
+                grdctl rdp enable-view-only
+
+            - name: grd set system rdp credentials
+              become_user: root
+              become: yes
+              shell: |
+                grdctl --system rdp enable
+                grdctl --system rdp set-credentials {{stream_user_username}} {{stream_user_password}}
+
+        - name: x11vnc setup
+          block:
+            # https://github.com/LibVNC/x11vnc?tab=readme-ov-file#how-to-use-x11vnc
+            - name: install x11vnc
+              ansible.builtin.apt:
+                pkg: x11vnc
+                update_cache: yes
+
+            - name: start x11vnc
+              shell: |
+                x11vnc -display :0
+
+
+        - name: tightvnc setup
+          when: false
+          block:
+            - name: install vnc server and dependencies
+              # https://help.ubuntu.com/community/VNC/Servers
+              ansible.builtin.apt:
+                pkg:
+                  - tightvncserver
+                state: present
+                update_cache: yes
+
+            # - name: configure vnc
+            #  etc/tightvncserver.conf 
+
+            - name: create vnc server
+              shell: echo 'setup tightvnc'
