@@ -220,3 +220,26 @@
 
             - name: create vnc server
               shell: echo 'setup tightvnc'
+
+        - name: guac setup
+          block:
+            # This should be docker compose (https://docs.ansible.com/ansible/latest/collections/community/docker/docker_compose_module.html)
+            
+            - name: start postgres for guacamole auth db
+              community.docker.docker_image:
+                name: "postgres"
+                tag: "latest"
+                source: pull
+
+            - name: start guacd service
+              community.docker.docker_image:
+                name: "guacamole/guacd"
+                tag: "latest"
+                source: pull
+
+            - name: start guacamole server
+              community.docker.docker_image:
+                name: "guacamole/guacamole"
+                tag: "latest"
+                source: pull
+
