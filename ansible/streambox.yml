@@ -223,23 +223,13 @@
             # https://guacamole.apache.org/doc/1.5.5/gug/guacamole-docker.html#running-the-guacd-docker-image
           
 
-            - name: start postgres for guacamole auth db
-              community.docker.docker_image:
-                name: "postgres"
-                tag: "latest"
-                source: pull
+            - name: prepare guacamole server
+              script: files/guacamole-docker/prepare.sh
 
-            - name: start guacd service
-              community.docker.docker_image:
-                name: "guacamole/guacd"
-                tag: "latest"
-                source: pull
-
-            - name: start guacamole server
-              community.docker.docker_image:
-                name: "guacamole/guacamole"
-                tag: "latest"
-                source: pull
+            - name: start guacamole docker cluster
+              community.docker.docker_compose_v2:
+                project_src: files/guacamole-docker
+                           
 
             - name: setup connections
               debug: msg='todo'
