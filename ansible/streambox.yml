@@ -38,13 +38,11 @@
               - ca-certificates
               - curl
               - software-properties-common
-              - python3-pip
-              - virtualenv
               - python3-setuptools
             state: latest
             update_cache: true
 
-        - name: Add an Apt signing key, uses whichever key is at the URL
+        - name: add an apt signing key
           ansible.builtin.apt_key:
             url: https://download.docker.com/linux/ubuntu/gpg
             state: present
@@ -125,71 +123,69 @@
       block:
         # https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/get-started/create-remote-tunnel/
         
-        - name: get cloudflare repo apt key
-          ansible.builtin.apt_key:
-            url: https://pkg.cloudflare.com/cloudflare-main.gpg 
-            state: present
+        - name: ngrok setup
+          block:
 
-        - name: cloudflared add apt repo remove
-          ansible.builtin.apt_repository:
-            repo: "deb https://pkg.cloudflare.com/cloudflared noble main"
-            state: absent
+            - name: download and install
+              shell: <
+                curl -sSL https://ngrok-agent.s3.amazonaws.com/ngrok.asc \
+                  | sudo tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null \
+                  && echo "deb https://ngrok-agent.s3.amazonaws.com buster main" \
+                  | sudo tee /etc/apt/sources.list.d/ngrok.list \
+                  && sudo apt update \
+                  && sudo apt install ngrok
 
-        - name: cloudflared add apt repo
-          ansible.builtin.apt_repository:
-            repo: "deb https://pkg.cloudflare.com/cloudflared jammy main"
-              # ubuntu 24 "noble" does not have an official release.
-              # See github issue
-              # Temporarily using 'jammy'
-              # https://github.com/cloudflare/cloudflared/issues/1235
 
-        - name: install cloudflared
-          ansible.builtin.apt:
-            name: cloudflared
-            state: present
-            update_cache: yes
+            - name: ngrok setup
+              shell: <
+                ngrok config add-authtoken 2oGosaQ5mCcHp6hk0YEZCQ8cBSF_7TNXna6mac1bz6jeELC66
 
-        - name: create cloudflare tunnel config
-          debug: msg='To Do'
-          when: false
 
-        - name: install cloudflare tunnel service
-          shell: cloudflared install service
-          when: false
+        - name: cloudflared setup
+          block:
+            # https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/get-started/create-remote-tunnel/
+            - name: get cloudflare repo apt key
+              ansible.builtin.apt_key:
+                url: https://pkg.cloudflare.com/cloudflare-main.gpg 
+                state: present
+
+            - name: cloudflared add apt repo remove
+              ansible.builtin.apt_repository:
+                repo: "deb https://pkg.cloudflare.com/cloudflared noble main"
+                state: absent
+
+            - name: cloudflared add apt repo
+              ansible.builtin.apt_repository:
+                repo: "deb https://pkg.cloudflare.com/cloudflared jammy main"
+                  # ubuntu 24 "noble" does not have an official release.
+                  # See github issue
+                  # Temporarily using 'jammy'
+                  # https://github.com/cloudflare/cloudflared/issues/1235
+
+            - name: install cloudflared
+              ansible.builtin.apt:
+                name: cloudflared
+                state: present
+                update_cache: yes
+
+            - name: create cloudflare tunnel config
+              debug: msg='To Do'
+              when: false
+
+            - name: install cloudflare tunnel service
+              shell: cloudflared install service
+              when: false
 
     - name: set up remote desktop software
       block:
-        - name: gnome remote desktop setup
+        - name: xrdp setup
           block:
-            # This will set up the default ubuntu RDP server for the stream user account
-            # The server is not encrypted and is intended to be used over an SSH Tunnel
-            # Same-user RDP (shared session) is on port 3389
-            # A completely new login session can be created by connecting to port 3390. This feature must be enabled via the GUI
 
-            - name: install gnome remote desktop
+            - name:
               ansible.builtin.apt:
-                pkg: gnome-remote-desktop
-                update_cache: yes
-
-            - name: grd get status
-              become_user: "{{stream_user_username}}"
-              become: yes
-              shell: grdctl status
-
-            - name: grd set user rdp credentials
-              become_user: "{{stream_user_username}}"
-              become: yes
-              shell: |
-                grdctl rdp enable
-                grdctl rdp set-credentials {{stream_user_username}} {{stream_user_password}}
-                grdctl rdp enable-view-only
-
-            - name: grd set system rdp credentials
-              become_user: root
-              become: yes
-              shell: |
-                grdctl --system rdp enable
-                grdctl --system rdp set-credentials {{stream_user_username}} {{stream_user_password}}
+                pkg: xrdp
+                state: present
+            
 
         - name: x11vnc setup
           block:
@@ -225,7 +221,8 @@
           block:
             # This should be docker compose (https://docs.ansible.com/ansible/latest/collections/community/docker/docker_compose_module.html)
             # https://guacamole.apache.org/doc/1.5.5/gug/guacamole-docker.html#running-the-guacd-docker-image
-            
+          
+
             - name: start postgres for guacamole auth db
               community.docker.docker_image:
                 name: "postgres"
@@ -243,6 +240,9 @@
                 name: "guacamole/guacamole"
                 tag: "latest"
                 source: pull
+
+            - name: setup connections
+              debug: msg='todo'
 
         - name: rustdesk setup
           # https://rustdesk.com/docs/en/self-host/rustdesk-server-oss/docker/
