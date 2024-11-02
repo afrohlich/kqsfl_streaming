@@ -16,4 +16,7 @@ else
       && sudo apt install gh -y
 fi
 
+private_github_email=$(gh api /user/emails | jq '.[] | select(.email | contains("noreply"))' | jq '.email')
+git config --global user.email "$private_github_email"
 
+git config --global credential.helper store
