@@ -200,23 +200,6 @@
                 x11vnc -display :0
 
 
-        - name: tightvnc setup
-          when: false
-          block:
-            - name: install vnc server and dependencies
-              # https://help.ubuntu.com/community/VNC/Servers
-              ansible.builtin.apt:
-                pkg:
-                  - tightvncserver
-                state: present
-                update_cache: yes
-
-            # - name: configure vnc
-            #  etc/tightvncserver.conf 
-
-            - name: create vnc server
-              shell: echo 'setup tightvnc'
-
         - name: guac setup
           block:
             # This should be docker compose (https://docs.ansible.com/ansible/latest/collections/community/docker/docker_compose_module.html)
@@ -228,15 +211,7 @@
 
             - name: start guacamole docker cluster
               community.docker.docker_compose_v2:
-                project_src: files/guacamole-docker
-                           
+                project_src: files/guacamole-docker                           
 
             - name: setup connections
               debug: msg='todo'
-
-        - name: rustdesk setup
-          # https://rustdesk.com/docs/en/self-host/rustdesk-server-oss/docker/
-          block:
-            - name: todo
-            - debug: msg='todo'
-
