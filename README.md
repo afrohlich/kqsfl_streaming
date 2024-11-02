@@ -5,7 +5,7 @@
 - Ubuntu 24
 
 ### Setup
-- Download `bootstrap` from this repository
+- Download `utils/bootstrap` from this repository
 - `bash ./bootstrap`
 - clone this repo
 - if you are using a private email for github you can set your email as follows
