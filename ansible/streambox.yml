@@ -64,6 +64,16 @@
 
     - name: configure google drive sync
       block:
+        - name: install dependencies
+          ansible.builtin.apt:
+            pkg: fuse3
+
+        - name: create mount point
+          file:
+            path: /opt/kqsfl-stream/local-recording-backups
+            state: directory
+  
+
         - name: install rclone
           ansible.builtin.include_role:
             name: stefangweichinger.ansible_rclone
@@ -71,23 +81,23 @@
             rclone_version: "1.68.1"
             # Versions listed at https://github.com/rclone/rclone/releases
 
-        - name: create mount point
-          file:
-            path: /opt/kqsfl-stream/local-recording-backups
-            state: directory  
 
         - name: configure rclone with GDrive mount
           ansible.builtin.include_role:
             name: stefangweichinger.ansible_rclone
+            # https://rclone.org/drive/#making-your-own-client-id
           vars:
             rclone_configs:
-              - name: google-drive
+              - name: gdrive-obs
                 properties:
                   type: drive
-                  token: 
-                  client_id: 
-                  client_secret:
-          when: false # Temporarily disabling until credentials are available for testing
+                  scope: drive
+                  metadata_labels: read,write
+                  #root_folder_id=17GAkKTidVB0VC5Y13IWvKud92UiSYrJP
+                  shared_with_me: true
+                  service_account_file: /home/stream-admin/.config/rclone/kqsfl-obs-service-account.json
+                  service_account_credentials: "{{rclone_gdrive_token}}"
+          when: true
 
         - name: Restart rclone
           ansible.builtin.systemd:
@@ -130,7 +140,7 @@
               shell: <
                 curl -sSL https://ngrok-agent.s3.amazonaws.com/ngrok.asc \
                   | sudo tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null \
-                  && echo "deb https://ngrok-agent.s3.amazonaws.com buster main" \
+                  && echo "deb [trusted=yes] https://ngrok-agent.s3.amazonaws.com buster main" \
                   | sudo tee /etc/apt/sources.list.d/ngrok.list \
                   && sudo apt update \
                   && sudo apt install ngrok
@@ -181,11 +191,13 @@
         - name: xrdp setup
           block:
 
-            - name:
+            - name: install xrdp
               ansible.builtin.apt:
                 pkg: xrdp
                 state: present
-            
+
+            - name: configure xrdp
+              debug: msg="todo"  
 
         - name: x11vnc setup
           block:
@@ -211,7 +223,7 @@
 
             - name: start guacamole docker cluster
               community.docker.docker_compose_v2:
-                project_src: files/guacamole-docker                           
+                project_src: files/guacamole-docker         
 
             - name: setup connections
-              debug: msg='todo'
+              script: files/guacamole-docker/configure_connections.sh

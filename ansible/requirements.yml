@@ -1,1 +1,5 @@
-- name: stefangweichinger.ansible_rclone
+collections:
+- community.docker
+
+roles:
+- stefangweichinger.ansible_rclone
