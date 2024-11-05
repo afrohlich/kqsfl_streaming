@@ -1,1 +1,1 @@
-- include_role: streambox.yml
+- include_tasks: streambox.yml

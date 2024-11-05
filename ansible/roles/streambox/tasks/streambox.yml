@@ -1,9 +1,17 @@
 - name: test
   command: whoami
 
-- name: test vars
-  debug:
-    msg: "{{stream_user_username}}"
+- name: create essential users
+  block:
+    - name: create admin user
+      ansible.builtin.user:
+        name: stream-admin
+        shell: /bin/bash
+
+    - name: create basic user
+      ansible.builtin.user:
+        name: stream-user
+        shell: /bin/bash
 
 - name: install basic management tools
   block:
@@ -49,25 +57,24 @@
       pip:
         name: docker
 
-- name: configure google drive sync
+- name: configure google drive sync for obs backups
   block:
     - name: install dependencies
       ansible.builtin.apt:
         pkg: fuse3
 
-    - name: create mount point
-      file:
-        path: /opt/kqsfl-stream/local-recording-backups
-        state: directory
-
-
     - name: install rclone
       ansible.builtin.include_role:
         name: stefangweichinger.ansible_rclone
       vars:
-        rclone_version: "1.68.1"
+        rclone_version: "{{streambox_rclone_version}}"
         # Versions listed at https://github.com/rclone/rclone/releases
 
+    - name: create mount point
+      file:
+        path: "{{streambox_rclone_gdrive_mount_point}}"
+        state: directory
+        owner: stream-admin
 
     - name: configure rclone with GDrive mount
       ansible.builtin.include_role:
@@ -75,16 +82,16 @@
         # https://rclone.org/drive/#making-your-own-client-id
       vars:
         rclone_configs:
-          - name: gdrive-obs-oauth
+          - name: gdrive-obs
             properties:
               type: drive
               scope: drive
               metadata_labels: read,write
-              client_id: "{{rclone_gdrive_client_id}}"
-              client_secret: "{{rclone_gdrive_client_secret}}"
-              token: "{{rclone_gdrive_oauth_token}}"
+              client_id: "{{streambox_rclone_gdrive_client_id  | mandatory}}"
+              client_secret: "{{streambox_rclone_gdrive_client_secret  | mandatory}}"
+              token: "{{streambox_rclone_gdrive_oauth_token  | mandatory}}"
               description: connect to gdrive using oauth as a real authorized user
-      when: rclone_gdrive_use_oauth
+      when: streambox_rclone_gdrive_use_oauth|bool
 
     - name: configure rclone with GDrive mount
       ansible.builtin.include_role:
@@ -92,24 +99,37 @@
         # https://rclone.org/drive/#making-your-own-client-id
       vars:
         rclone_configs:
-          - name: gdrive-obs-sa
+          - name: gdrive-obs
             properties:
               type: drive
               scope: drive
               metadata_labels: read,write
-              root_folder_id: 
+              root_folder_id: "{{streambox_rclone_gdrive_root_folder}}"
               shared_with_me: true
-              service_account_file: /home/stream-admin/.config/rclone/kqsfl-obs-service-account.json
-              service_account_credentials: "{{rclone_gdrive_token}}"
+              service_account_file: "{{streambox_rclone_gdrive_sa_cred_filename  | mandatory}}"
+              service_account_credentials: "{{streambox_rclone_gdrive_sa_token | mandatory}}"
               description: connect to gdrive using service account
-      when: not rclone_gdrive_use_oauth
+      when: not rclone_gdrive_use_oauth|bool
 
-    - name: create 
+    - name: create rclone systemd
+      ansible.builtin.template:
+        src: rclone_systemd.j2
+        dest: "{{lookup('env', 'HOME')}}.config/systemd/user/rclone-gdrive-obs.mount"
+        owner: stream-admin
+      vars:
+        rclone_mount_name: gdrive-obs
+        rclone_mount_subdir: ''
+        rclone_mount_point: "{{streambox_rclone_gdrive_mount_point}}"
+        rclone_config_path: "{{ [streambox_rclone_gdrive_config_dir,'rclone.conf' ] | path_join}}"
+      register: setup_rclone_config
 
     - name: Restart rclone
       ansible.builtin.systemd:
-        name: rclone.service
+        name: rclone-gdrive-obs.mount
+        scope: user
+        daemon_reload: true
         state: restarted
+        enabled: true
       when: setup_rclone_config.changed
 
 - name: install obs studio

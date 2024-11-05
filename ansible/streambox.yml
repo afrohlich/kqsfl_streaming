@@ -7,8 +7,8 @@
   become: yes
   become_user: root
   vars_files:
-    - "{{ lookup('env', 'HOME') }}/.streambox_vars.yml"
-    - "{{ lookup('env', 'HOME') }}/.streambox_credentials.yml"
+    - "{{ lookup('env', 'HOME') }}/streambox_vars.yml"
+    - "{{ lookup('env', 'HOME') }}/streambox_credentials.yml"
 
-  role:
+  roles:
     - streambox
