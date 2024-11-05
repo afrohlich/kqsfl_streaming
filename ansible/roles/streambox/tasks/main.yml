@@ -1,1 +1,1 @@
-- include_tasks: streambox.yml
+- import_tasks: streambox.yml

@@ -59,7 +59,7 @@
 
 - name: configure google drive sync for obs backups
   block:
-    - name: install dependencies
+    - name: install rclone dependencies
       ansible.builtin.apt:
         pkg: fuse3
 
