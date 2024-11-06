@@ -3,4 +3,4 @@ streambox_rclone_gdrive_root_folder:
 streambox_rclone_gdrive_use_oauth: true
 streambox_rclone_gdrive_config_dir: /home/stream-admin/.config/rclone/
 streambox_rclone_gdrive_sa_cred_filename: obs-service-account.json
-streambox_rclone_gdrive_mount_point: /mnt/kqsfl-stream/obs-backups
+streambox_rclone_gdrive_mount_point: /mnt/kqsfl_stream/obs_backups

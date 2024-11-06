@@ -8,10 +8,22 @@
         name: stream-admin
         shell: /bin/bash
 
+    - name: create admin user systemd directory
+      ansible.builtin.file:
+        path: "/home/stream-admin/.config/systemd/user/"
+        state: directory
+        owner: stream-admin
+
     - name: create basic user
       ansible.builtin.user:
         name: stream-user
         shell: /bin/bash
+
+    - name: create basic user systemd directory
+      ansible.builtin.file:
+        path: "/home/stream-user/.config/systemd/user/"
+        state: directory
+        owner: stream-user
 
 - name: install basic management tools
   block:
@@ -81,6 +93,10 @@
         name: stefangweichinger.ansible_rclone
         # https://rclone.org/drive/#making-your-own-client-id
       vars:
+        rclone_config_owner:
+          OWNER: stream-admin
+          GROUP: stream-admin
+        rclone_config_location: "/home/stream-admin/.config/rclone/rclone.conf"
         rclone_configs:
           - name: gdrive-obs
             properties:
@@ -98,6 +114,10 @@
         name: stefangweichinger.ansible_rclone
         # https://rclone.org/drive/#making-your-own-client-id
       vars:
+        rclone_config_owner:
+          OWNER: stream-admin
+          GROUP: stream-admin
+        rclone_config_location: "/home/stream-admin/.config/rclone/rclone.conf"
         rclone_configs:
           - name: gdrive-obs
             properties:
@@ -109,12 +129,12 @@
               service_account_file: "{{streambox_rclone_gdrive_sa_cred_filename  | mandatory}}"
               service_account_credentials: "{{streambox_rclone_gdrive_sa_token | mandatory}}"
               description: connect to gdrive using service account
-      when: not rclone_gdrive_use_oauth|bool
+      when: not streambox_rclone_gdrive_use_oauth|bool
 
     - name: create rclone systemd
       ansible.builtin.template:
         src: rclone_systemd.j2
-        dest: "{{lookup('env', 'HOME')}}.config/systemd/user/rclone-gdrive-obs.mount"
+        dest: "/home/stream-admin/.config/systemd/user/rclone-gdrive-obs.mount"
         owner: stream-admin
       vars:
         rclone_mount_name: gdrive-obs
@@ -123,13 +143,21 @@
         rclone_config_path: "{{ [streambox_rclone_gdrive_config_dir,'rclone.conf' ] | path_join}}"
       register: setup_rclone_config
 
-    - name: Restart rclone
+    - name: register uid of stream-admin
+      command: id -u stream-admin
+      register: stream_admin_uid
+
+    - name: restart rclone mount
+      become: yes
+      become_user: stream-admin
       ansible.builtin.systemd:
-        name: rclone-gdrive-obs.mount
+        name: mnt-kqsfl_stream-obs_backups.mount # TODO: need to automate this using systemd-escape command
         scope: user
         daemon_reload: true
         state: restarted
         enabled: true
+      environment:
+        XDG_RUNTIME_DIR: /run/user/{{stream_admin_uid.stdout}}
       when: setup_rclone_config.changed
 
 - name: install obs studio

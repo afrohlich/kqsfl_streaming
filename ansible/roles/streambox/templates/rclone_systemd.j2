@@ -4,6 +4,6 @@
 Description=Mount for {{rclone_mount_point}}
 [Mount]
 Type=rclone
-What={{rclone_mount_name}}:{{rclone_subdir}}
+What={{rclone_mount_name}}:{{rclone_mount_subdir}}
 Where={{rclone_mount_point}}
 Options=rw,_netdev,allow_other,args2env,vfs-cache-mode=writes,config={{rclone_config_path}},cache-dir=/var/rclone
