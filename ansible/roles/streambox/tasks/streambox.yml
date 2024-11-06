@@ -103,6 +103,7 @@
               type: drive
               scope: drive
               metadata_labels: read,write
+              root_folder_id: "{{streambox_rclone_gdrive_root_folder}}"
               client_id: "{{streambox_rclone_gdrive_client_id  | mandatory}}"
               client_secret: "{{streambox_rclone_gdrive_client_secret  | mandatory}}"
               token: "{{streambox_rclone_gdrive_oauth_token  | mandatory}}"
@@ -133,14 +134,9 @@
 
     - name: create rclone systemd
       ansible.builtin.template:
-        src: rclone_systemd.j2
-        dest: "/home/stream-admin/.config/systemd/user/rclone-gdrive-obs.mount"
+        src: rclone_systemd_user_mount.j2
+        dest: "/home/stream-admin/.config/systemd/user/rclone@.service"
         owner: stream-admin
-      vars:
-        rclone_mount_name: gdrive-obs
-        rclone_mount_subdir: ''
-        rclone_mount_point: "{{streambox_rclone_gdrive_mount_point}}"
-        rclone_config_path: "{{ [streambox_rclone_gdrive_config_dir,'rclone.conf' ] | path_join}}"
       register: setup_rclone_config
 
     - name: register uid of stream-admin
@@ -151,7 +147,7 @@
       become: yes
       become_user: stream-admin
       ansible.builtin.systemd:
-        name: mnt-kqsfl_stream-obs_backups.mount # TODO: need to automate this using systemd-escape command
+        name: rclone@gdrive-obs.service    #name after the @ must match the name of the config name 
         scope: user
         daemon_reload: true
         state: restarted
