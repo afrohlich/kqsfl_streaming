@@ -106,7 +106,7 @@
               root_folder_id: "{{streambox_rclone_gdrive_root_folder}}"
               client_id: "{{streambox_rclone_gdrive_client_id  | mandatory}}"
               client_secret: "{{streambox_rclone_gdrive_client_secret  | mandatory}}"
-              token: "{{streambox_rclone_gdrive_oauth_token  | mandatory}}"
+              token: "{{streambox_rclone_gdrive_oauth_token  | mandatory | to_json}}"
               description: connect to gdrive using oauth as a real authorized user
       when: streambox_rclone_gdrive_use_oauth|bool
 
