@@ -4,3 +4,7 @@ streambox_rclone_gdrive_use_oauth: true
 streambox_rclone_gdrive_config_dir: /home/stream-admin/.config/rclone/
 streambox_rclone_gdrive_sa_cred_filename: obs-service-account.json
 streambox_rclone_gdrive_mount_point: /mnt/kqsfl_stream/obs_backups
+
+streambox_obs_studio_version: 29.1.3-0obsproject1~focal
+
+ngrok_public_url: intent-serval-noble.ngrok-free.app

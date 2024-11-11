@@ -133,9 +133,11 @@
       when: not streambox_rclone_gdrive_use_oauth|bool
 
     - name: create rclone systemd
+      become: yes
+      become_user: stream-admin
       ansible.builtin.template:
         src: rclone_systemd_user_mount.j2
-        dest: "/home/stream-admin/.config/systemd/user/rclone@.service"
+        dest: "{{ lookup('env', 'HOME') }}/.config/systemd/user/rclone@.service"
         owner: stream-admin
       register: setup_rclone_config
 
@@ -166,7 +168,7 @@
     - name: obs studio install
       ansible.builtin.apt:
         update_cache: yes
-        name: "obs-studio=30.2.3-0obsproject1~{{ ansible_distribution_release }}"
+        name: "obs-studio={{streambox_obs_studio_version}}"
         # versions: https://launchpad.net/~obsproject/+archive/ubuntu/obs-studio
 
 - name: install restreamer
@@ -180,27 +182,124 @@
   - name: configure and start restreamer
     debug: msg='configure restreamer'
 
+- name: set up remote desktop software
+  block:
+    - name: xrdp setup
+      block:
+
+        - name: install xrdp
+          ansible.builtin.apt:
+            pkg: xrdp
+            state: present
+
+        - name: configure xrdp
+          debug: msg="todo"  
+
+    - name: x11vnc setup
+      tags: vnc_x11vnc_install
+      block:
+        # https://github.com/LibVNC/x11vnc?tab=readme-ov-file#how-to-use-x11vnc
+        # https://wiki.archlinux.org/title/X11vnc
+        - name: install x11vnc
+          ansible.builtin.apt:
+            pkg: x11vnc
+            update_cache: yes
+
+        - name: x11vnc systemd service directory
+          ansible.builtin.file:
+            path: /etc/systemd/system/x11vnc.service.d/
+            state: directory
+
+        - name: x11vnc systemd service
+          template:
+            src: x11vnc_systemd_service.j2
+            dest: /etc/systemd/system/x11vnc.service.d/override.conf
+
+        - name: start x11vnc
+          ansible.builtin.systemd:
+            service: x11vnc.service
+            state: restart
+            enabled: true
+            daemon_reload: true
+
+
+    - name: guac setup
+      tags: guac_setup
+      block:
+        # This should be docker compose (https://docs.ansible.com/ansible/latest/collections/community/docker/docker_compose_module.html)
+        # https://guacamole.apache.org/doc/1.5.5/gug/guacamole-docker.html#running-the-guacd-docker-image
+      
+
+        - name: prepare guacamole server
+          script: files/guacamole-docker/prepare.sh
+
+        - name: start guacamole docker cluster
+          community.docker.docker_compose_v2:
+            project_src: files/guacamole-docker         
+
+        - name: setup connections
+          script: files/guacamole-docker/configure_connections.sh
+
 - name: install reverse proxy tunnel for external access
   block:
     # https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/get-started/create-remote-tunnel/
     
     - name: ngrok setup
+      tags: ngrok_setup
       block:
+        - name: ngrok get repo key
+          ansible.builtin.apt_key:
+            url: https://ngrok-agent.s3.amazonaws.com/ngrok.asc
+            keyring: /etc/apt/trusted.gpg.d/ngrok.asc
 
-        - name: download and install
-          shell: <
-            curl -sSL https://ngrok-agent.s3.amazonaws.com/ngrok.asc \
-              | sudo tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null \
-              && echo "deb [trusted=yes] https://ngrok-agent.s3.amazonaws.com buster main" \
-              | sudo tee /etc/apt/sources.list.d/ngrok.list \
-              && sudo apt update \
-              && sudo apt install ngrok
+        - name: ngrok add repo
+          ansible.builtin.apt_repository:
+            repo: "deb [trusted=yes signed-by=/etc/apt/trusted.gpg.d/ngrok.asc] https://ngrok-agent.s3.amazonaws.com {{ ansible_distribution_release }} stable"
+            state: present
+            
+        - name: ngrok make config dir
+          ansible.builtin.apt:
+            pkg: ngrok
+            update_cache: true
+            
+        - name: ngrok make config dir
+          become: yes
+          become_user: stream-admin
+          ansible.builtin.file:
+            path: "{{ lookup('env', 'HOME') }}/.config/ngrok/"
+            state: directory
 
+        - name: ngrok user config setup
+          become: yes
+          become_user: stream-admin
+          template:
+            src: ngrok_user_config.j2
+            dest: "{{ lookup('env', 'HOME') }}/.config/ngrok/ngrok.yml"
 
-        - name: ngrok setup
-          shell: <
-            ngrok config add-authtoken 2oGosaQ5mCcHp6hk0YEZCQ8cBSF_7TNXna6mac1bz6jeELC66
+        - name: ngrok user systemd service
+          become: yes
+          become_user: stream-admin
+          template:
+            src: ngrok_systemd_user_service.j2
+            dest: "{{ lookup('env', 'HOME') }}/.config/systemd/user/ngrok@.service"
+          register: setup_ngrok_config
 
+        - name: register uid of stream-admin
+          command: id -u stream-admin
+          register: stream_admin_uid
+
+        - name: restart ngrok service
+          become: yes
+          become_user: stream-admin
+          ansible.builtin.systemd:
+            name: ngrok@kasmvnc.service    #name after the @ must match the name of the endpoint in the config 
+            scope: user
+            daemon_reload: true
+            state: restarted
+            enabled: true
+          environment:
+            XDG_RUNTIME_DIR: /run/user/{{stream_admin_uid.stdout}}
+          when: setup_ngrok_config.changed
 
     - name: cloudflared setup
       block:
@@ -237,44 +336,11 @@
           shell: cloudflared install service
           when: false
 
-- name: set up remote desktop software
+
+- name: install nginx public-facing web server
   block:
-    - name: xrdp setup
+    - name: nginx setup
       block:
-
-        - name: install xrdp
-          ansible.builtin.apt:
-            pkg: xrdp
-            state: present
-
-        - name: configure xrdp
-          debug: msg="todo"  
-
-    - name: x11vnc setup
-      block:
-        # https://github.com/LibVNC/x11vnc?tab=readme-ov-file#how-to-use-x11vnc
-        - name: install x11vnc
-          ansible.builtin.apt:
-            pkg: x11vnc
-            update_cache: yes
-
-        - name: start x11vnc
-          shell: |
-            x11vnc -display :0
-
-
-    - name: guac setup
-      block:
-        # This should be docker compose (https://docs.ansible.com/ansible/latest/collections/community/docker/docker_compose_module.html)
-        # https://guacamole.apache.org/doc/1.5.5/gug/guacamole-docker.html#running-the-guacd-docker-image
-      
-
-        - name: prepare guacamole server
-          script: files/guacamole-docker/prepare.sh
-
-        - name: start guacamole docker cluster
-          community.docker.docker_compose_v2:
-            project_src: files/guacamole-docker         
-
-        - name: setup connections
-          script: files/guacamole-docker/configure_connections.sh
+        #- name: install nginx
+        #- name: configure nginx
+        #- name: configure nginx services

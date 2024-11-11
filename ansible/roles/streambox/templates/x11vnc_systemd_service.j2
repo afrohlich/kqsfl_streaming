@@ -1,0 +1,10 @@
+[Unit]
+Description=VNC Server
+After=graphical.target network.target
+
+[Service]
+Restart=always
+ExecStart=/usr/bin/x11vnc -auth guess -forever -loop -noxdamage -repeat -rfbauth /etc/x11vnc/x11vnc.passwd -rfbport 5900 -shared
+
+[Install]
+WantedBy=graphical.target
