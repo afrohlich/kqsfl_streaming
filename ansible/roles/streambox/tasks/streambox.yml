@@ -222,6 +222,49 @@
             enabled: true
             daemon_reload: true
 
+    - name: kasmvnc setup
+      tags: kasmvnc_setup
+      block:
+        - name: kasmvnc get current release
+          ansible.builtin.get_url:
+            url: https://github.com/kasmtech/KasmVNC/releases/download/v{{kasmvnc_version}}/kasmvncserver_{{ansible_distribution_release}}_{{kasmvnc_version}}_amd64.deb
+            dest: /tmp/kasmvnc.deb
+
+        - name: kasmvnc install current release
+          ansible.builtin.apt:
+            deb: /tmp/kasmvnc.deb
+
+        - name: kasmvnc configure user password
+          become: yes
+          become_user: stream-admin
+          ansible.builtin.shell: |
+            echo -e '{{vnc_password}}\n{{vnc_password}}\n' | vncpasswd  -u stream-admin -w -r
+
+        - name: create admin user vnc config directory
+          ansible.builtin.file:
+            path: "/home/stream-admin/.vnc"
+            state: directory
+            owner: stream-admin
+
+        - name: kasmvnc vnc config
+          ansible.builtin.template:
+            src: kasmvnc_user_config.j2
+            dest: .vnc/kasmvnc.yaml 
+            owner: stream-admin
+
+        - name: create basic user systemd directory
+          ansible.builtin.file:
+            path: "/home/stream-admin/.config/systemd/user/"
+            state: directory
+            owner: stream-admin
+
+        - name: kasmvnc configure systemd service
+          ansible.builtin.template:
+            src: kasmvnc_user_systemd_service.j2
+            dest: .vnc/kasmvnc.yaml 
+            owner: stream-admin
+
+        - name: kasmvnc enable systemd service
 
     - name: guac setup
       tags: guac_setup

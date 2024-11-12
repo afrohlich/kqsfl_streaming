@@ -7,4 +7,6 @@ streambox_rclone_gdrive_mount_point: /mnt/kqsfl_stream/obs_backups
 
 streambox_obs_studio_version: 29.1.3-0obsproject1~focal
 
-ngrok_public_url: intent-serval-noble.ngrok-free.app
+streambox_ngrok_public_url: intent-serval-noble.ngrok-free.app
+
+streambox_kasmvnc_version: 1.3.3
