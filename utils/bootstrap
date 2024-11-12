@@ -13,7 +13,9 @@ sudo apt install -y \
    git \
    python3.12 \
    pipx \
-   jq
+   jq \
+   openssh-server \
+   net-tools
 echo 'Dependencies installed'
 
 
