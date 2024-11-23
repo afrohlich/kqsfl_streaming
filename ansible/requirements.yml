@@ -3,3 +3,4 @@ collections:
 
 roles:
 - stefangweichinger.ansible_rclone
+- robertdebock.xrdp

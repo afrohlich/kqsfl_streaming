@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# 
+
+## Links and References
+# Kickstart and preseed
+#   https://askubuntu.com/questions/122505/how-do-i-create-a-completely-unattended-install-of-ubuntu
+# Ubuntu autoinstall
+#   https://canonical-subiquity.readthedocs-hosted.com/en/latest/intro-to-autoinstall.html
+#   Non-starter -> "Ubuntu Desktop, version 23.04 and later"
+# cloud-init
+#  https://www.pugetsystems.com/labs/hpc/how-to-make-ubuntu-autoinstall-iso-with-cloud-init-2213/?srsltid=AfmBOopvopqmvuaHzT6vSdd1hf2R3miiZG--itAYcTEu5gWklUrzdSnj
+
+
+set -euo pipefail
+
+echo "To Do"

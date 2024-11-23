@@ -1,0 +1,49 @@
+####################################################################################
+# docker-compose file for (mostly) headless obs
+# created by KQSFL 2024
+####################################################################################
+#
+# What does this file do?
+#
+# Using docker-compose it will:
+#
+#####################################################################################
+
+#version: '3.0'
+
+networks:
+  streambox_compose:
+    driver: bridge
+
+services:
+  caddy:
+    image: caddy:latest
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - ./site:/srv
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - streambox_compose
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  kuma:
+    image: louislam/uptime-kuma:latest
+    restart: always
+    ports:
+      - "3001:3001"
+    volumes:
+      - uptime-kuma:/app/data
+    networks:
+      - streambox_compose
+
+volumes:
+  caddy_data:
+  caddy_config:
+  uptime-kuma:

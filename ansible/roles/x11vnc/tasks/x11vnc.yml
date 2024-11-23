@@ -1,0 +1,23 @@
+    - name: x11vnc setup
+      tags: vnc_x11vnc_install
+      block:
+        # https://github.com/LibVNC/x11vnc?tab=readme-ov-file#how-to-use-x11vnc
+        # https://wiki.archlinux.org/title/X11vnc
+        # https://just.graphica.com.au/tips/ubuntu-and-remote-gnome-desktop/
+        # https://askubuntu.com/questions/1029015/x11vnc-gdm3-creates-a-new-x11-display-after-login
+        # https://github.com/pekmop1024/x11vnc-light-locker/blob/master/usr/local/bin/x11vnc-light-locker
+        # https://wiki.archlinux.org/title/LightDM
+        - name: install x11vnc
+          ansible.builtin.apt:
+            pkg: x11vnc
+            update_cache: yes
+
+        - name: x11vnc configure systemd
+          ansible.builtin.import_tasks: install_systemd_lightdm.yml
+
+        - name: start x11vnc
+          ansible.builtin.systemd:
+            service: x11vnc.service
+            state: restarted
+            enabled: true
+            daemon_reload: true

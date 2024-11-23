@@ -1,11 +1,9 @@
 [Unit]
-Description=ngrok
+Description=kasmvnc
 After=network.target
 
 [Service]
-ExecStart=vncserver :0 -desktop gdm --config %h/.confg/ngrok/ngrok.yml
-ExecReload=/bin/kill -HUP $MAINPID
-ExecStop=vncserver -kill :0
+ExecStart=vncserver :2 -select-de gnome -fg
 KillMode=process
 IgnoreSIGPIPE=true
 Restart=always

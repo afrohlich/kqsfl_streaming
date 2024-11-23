@@ -12,12 +12,16 @@ sudo apt update
 sudo apt install -y \
    git \
    python3.12 \
-   pipx \
    jq \
    openssh-server \
    net-tools
 echo 'Dependencies installed'
 
+echo -e '\n\n\n'
+echo 'Installing pipx'
+python3 -m pip install pipx
+python3 -m pipx ensurepath
+echo 'pipx installed'
 
 
 echo -e '\n\n\n'

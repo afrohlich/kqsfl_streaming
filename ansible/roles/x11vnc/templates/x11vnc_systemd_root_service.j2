@@ -4,7 +4,7 @@ After=graphical.target network.target
 
 [Service]
 Restart=always
-ExecStart=/usr/bin/x11vnc -auth guess -forever -loop -noxdamage -repeat -rfbauth /etc/x11vnc/x11vnc.passwd -rfbport 5900 -shared
+ExecStart=/usr/bin/x11vnc-service-wrapper %i
 
 [Install]
 WantedBy=graphical.target

@@ -38,3 +38,7 @@ This includes:
 - Power interuption handling
 
 This setup is designed to enable a server to run from within an isolated network when access to firewall rules is not available.
+
+### Hardware
+
+The primary design of this repository is to make use a laptop running Ubuntu.

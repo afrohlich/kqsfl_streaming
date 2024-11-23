@@ -1,10 +1,9 @@
 [Unit]
-Description=ngrok
+Description=ttyd terminal via web browser
 After=network.target
 
 [Service]
-ExecStart=/usr/local/bin/ngrok start %i --config %h/.config/ngrok/ngrok.yml
-ExecReload=/bin/kill -HUP $MAINPID
+ExecStart=/snap/bin/ttyd -i docker0 --writeable -p {{streambox_ttyd_port}} --base-path login
 KillMode=process
 IgnoreSIGPIPE=true
 Restart=always

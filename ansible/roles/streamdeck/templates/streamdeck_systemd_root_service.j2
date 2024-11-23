@@ -1,0 +1,15 @@
+[Unit]
+Description=streamdeck
+After=multi-user.target
+
+[Service]
+ExecStart=streamdeck -n
+User=streamdeck
+KillMode=process
+IgnoreSIGPIPE=true
+Restart=always
+RestartSec=3
+Type=simple
+
+[Install]
+WantedBy=multi-user.target

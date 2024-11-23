@@ -2,6 +2,7 @@
   command: whoami
 
 - name: create essential users
+  tags: create_users
   block:
     - name: create admin user
       ansible.builtin.user:
@@ -9,6 +10,7 @@
         shell: /bin/bash
 
     - name: create admin user systemd directory
+      # https://wiki.archlinux.org/title/Systemd/User
       ansible.builtin.file:
         path: "/home/stream-admin/.config/systemd/user/"
         state: directory
@@ -25,7 +27,23 @@
         state: directory
         owner: stream-user
 
+- name: python extras
+  block:
+    - name: python install deadsnakes ppa
+      ansible.builtin.apt_repository:
+        repo: ppa:deadsnakes/ppa
+
+    - name: python python3.9
+      ansible.builtin.apt:
+        pkg:
+          - python3.9
+        update_cache: true
+
+- name: configure desktop managers
+  ansible.builtin.import_tasks: desktop_setup.yml
+
 - name: install basic management tools
+  tags: install_basics
   block:
     - name: install networking tools
       ansible.builtin.apt:
@@ -36,7 +54,16 @@
           - net-tools
         update_cache: true
 
+    - name: install system tools
+      ansible.builtin.apt:
+        pkg:
+          - inotify-tools
+          - dbus-x11
+          - net-tools
+        update_cache: true
+
 - name: install docker
+  tags: install_docker
   block:
     - name: install required system packages
       ansible.builtin.apt:
@@ -46,6 +73,7 @@
           - curl
           - software-properties-common
           - python3-setuptools
+          - python3-pip
         state: latest
         update_cache: true
 
@@ -56,7 +84,7 @@
 
     - name: add docker repository
       ansible.builtin.apt_repository:
-        repo: "deb https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+        repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
         state: present
 
     - name: update apt and install docker-ce
@@ -70,6 +98,7 @@
         name: docker
 
 - name: configure google drive sync for obs backups
+  tags: configure_gdrive
   block:
     - name: install rclone dependencies
       ansible.builtin.apt:
@@ -127,8 +156,7 @@
               metadata_labels: read,write
               root_folder_id: "{{streambox_rclone_gdrive_root_folder}}"
               shared_with_me: true
-              service_account_file: "{{streambox_rclone_gdrive_sa_cred_filename  | mandatory}}"
-              service_account_credentials: "{{streambox_rclone_gdrive_sa_token | mandatory}}"
+              service_account_credentials: "{{streambox_rclone_gdrive_sa_token | mandatory | to_json}}"
               description: connect to gdrive using service account
       when: not streambox_rclone_gdrive_use_oauth|bool
 
@@ -137,7 +165,7 @@
       become_user: stream-admin
       ansible.builtin.template:
         src: rclone_systemd_user_mount.j2
-        dest: "{{ lookup('env', 'HOME') }}/.config/systemd/user/rclone@.service"
+        dest: "/home/stream-admin/.config/systemd/user/rclone@.service"
         owner: stream-admin
       register: setup_rclone_config
 
@@ -158,8 +186,9 @@
         XDG_RUNTIME_DIR: /run/user/{{stream_admin_uid.stdout}}
       when: setup_rclone_config.changed
 
-- name: install obs studio
+- name: obs studio setup
   # https://obsproject.com/kb/linux-installation
+  # https://github.com/pschmitt/obs-cli
   block:
     - name: obs studio add apt repo
       ansible.builtin.apt_repository:
@@ -171,100 +200,35 @@
         name: "obs-studio={{streambox_obs_studio_version}}"
         # versions: https://launchpad.net/~obsproject/+archive/ubuntu/obs-studio
 
-- name: install restreamer
-  block:
-  - name: install restreamer
-    community.docker.docker_image:
-      name: "datarhei/restreamer"
-      tag: "latest"
-      source: pull
+    - name: obs studio cli install
+      community.general.pipx:
+        name: obs-cli
+        include_injected: false
+        state: install
+        python: 3.9
 
-  - name: configure and start restreamer
-    debug: msg='configure restreamer'
+- name: streamdeck setup
+  ansible.builtin.import_role:
+    name: streamdeck
 
 - name: set up remote desktop software
   block:
     - name: xrdp setup
-      block:
-
-        - name: install xrdp
-          ansible.builtin.apt:
-            pkg: xrdp
-            state: present
-
-        - name: configure xrdp
-          debug: msg="todo"  
+      ansible.builtin.import_role:
+        name: robertdebock.xrdp
 
     - name: x11vnc setup
       tags: vnc_x11vnc_install
-      block:
-        # https://github.com/LibVNC/x11vnc?tab=readme-ov-file#how-to-use-x11vnc
-        # https://wiki.archlinux.org/title/X11vnc
-        - name: install x11vnc
-          ansible.builtin.apt:
-            pkg: x11vnc
-            update_cache: yes
-
-        - name: x11vnc systemd service directory
-          ansible.builtin.file:
-            path: /etc/systemd/system/x11vnc.service.d/
-            state: directory
-
-        - name: x11vnc systemd service
-          template:
-            src: x11vnc_systemd_service.j2
-            dest: /etc/systemd/system/x11vnc.service.d/override.conf
-
-        - name: start x11vnc
-          ansible.builtin.systemd:
-            service: x11vnc.service
-            state: restart
-            enabled: true
-            daemon_reload: true
+      ansible.builtin.import_role:
+        name: x11vnc
 
     - name: kasmvnc setup
       tags: kasmvnc_setup
-      block:
-        - name: kasmvnc get current release
-          ansible.builtin.get_url:
-            url: https://github.com/kasmtech/KasmVNC/releases/download/v{{kasmvnc_version}}/kasmvncserver_{{ansible_distribution_release}}_{{kasmvnc_version}}_amd64.deb
-            dest: /tmp/kasmvnc.deb
-
-        - name: kasmvnc install current release
-          ansible.builtin.apt:
-            deb: /tmp/kasmvnc.deb
-
-        - name: kasmvnc configure user password
-          become: yes
-          become_user: stream-admin
-          ansible.builtin.shell: |
-            echo -e '{{vnc_password}}\n{{vnc_password}}\n' | vncpasswd  -u stream-admin -w -r
-
-        - name: create admin user vnc config directory
-          ansible.builtin.file:
-            path: "/home/stream-admin/.vnc"
-            state: directory
-            owner: stream-admin
-
-        - name: kasmvnc vnc config
-          ansible.builtin.template:
-            src: kasmvnc_user_config.j2
-            dest: .vnc/kasmvnc.yaml 
-            owner: stream-admin
-
-        - name: create basic user systemd directory
-          ansible.builtin.file:
-            path: "/home/stream-admin/.config/systemd/user/"
-            state: directory
-            owner: stream-admin
-
-        - name: kasmvnc configure systemd service
-          ansible.builtin.template:
-            src: kasmvnc_user_systemd_service.j2
-            dest: .vnc/kasmvnc.yaml 
-            owner: stream-admin
-
-        - name: kasmvnc enable systemd service
+      ansible.builtin.import_role:
+        name: kasmvnc
+      vars:
+        kasmvnc_user: "stream-admin"
+        kasmvnc_password: "{{streambox_vnc_password}}"
 
     - name: guac setup
       tags: guac_setup
@@ -272,17 +236,42 @@
         # This should be docker compose (https://docs.ansible.com/ansible/latest/collections/community/docker/docker_compose_module.html)
         # https://guacamole.apache.org/doc/1.5.5/gug/guacamole-docker.html#running-the-guacd-docker-image
       
+        - name: copy docker compose configurations
+          ansible.builtin.copy:
+            src: guacamole-docker/
+            dest: /home/stream-admin/streambox-docker/guacamole
 
         - name: prepare guacamole server
-          script: files/guacamole-docker/prepare.sh
+          shell: bash /home/stream-admin/streambox-docker/guacamole/prepare.sh
 
         - name: start guacamole docker cluster
           community.docker.docker_compose_v2:
-            project_src: files/guacamole-docker         
+            project_src: /home/stream-admin/streambox-docker/guacamole/
 
-        - name: setup connections
-          script: files/guacamole-docker/configure_connections.sh
+        - name: setup guacamole connections
+          shell: bash /home/stream-admin/streambox-docker/guacamole/configure_connections.sh
+          when: false
 
+    - name: steambox remote tty setup
+      # https://github.com/tsl0922/ttyd
+      block:
+        - name: ttyd install
+          ansible.builtin.snap:
+            name: ttyd
+            classic: true
+
+        - name: ttyd systemd service install
+          ansible.builtin.template:
+            src: ttyd_systemd_root_service.j2
+            dest: /etc/systemd/system/ttyd.service
+
+        - name: ttyd systemd service enable
+          ansible.builtin.systemd:
+            name: ttyd.service
+            enabled: true
+            daemon_reload: true
+            state: restarted
+        
 - name: install reverse proxy tunnel for external access
   block:
     # https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/get-started/create-remote-tunnel/
@@ -291,25 +280,26 @@
       tags: ngrok_setup
       block:
         - name: ngrok get repo key
-          ansible.builtin.apt_key:
+          ansible.builtin.get_url:
             url: https://ngrok-agent.s3.amazonaws.com/ngrok.asc
-            keyring: /etc/apt/trusted.gpg.d/ngrok.asc
+            dest: /etc/apt/keyrings/ngrok.asc
 
         - name: ngrok add repo
           ansible.builtin.apt_repository:
-            repo: "deb [trusted=yes signed-by=/etc/apt/trusted.gpg.d/ngrok.asc] https://ngrok-agent.s3.amazonaws.com {{ ansible_distribution_release }} stable"
+            # To Do: map the Debian version 'bullseye' to corresponding ubuntu version provided by {{ ansible_distribution_release }}
+            repo: "deb [trusted=yes signed-by=/etc/apt/keyrings/ngrok.asc] https://ngrok-agent.s3.amazonaws.com bullseye main"
             state: present
-            
-        - name: ngrok make config dir
+
+        - name: ngrok install
           ansible.builtin.apt:
-            pkg: ngrok
+            name: ngrok
             update_cache: true
             
         - name: ngrok make config dir
           become: yes
           become_user: stream-admin
           ansible.builtin.file:
-            path: "{{ lookup('env', 'HOME') }}/.config/ngrok/"
+            path: "/home/stream-admin/.config/ngrok/"
             state: directory
 
         - name: ngrok user config setup
@@ -317,14 +307,14 @@
           become_user: stream-admin
           template:
             src: ngrok_user_config.j2
-            dest: "{{ lookup('env', 'HOME') }}/.config/ngrok/ngrok.yml"
+            dest: "/home/stream-admin/.config/ngrok/ngrok.yml"
 
         - name: ngrok user systemd service
           become: yes
           become_user: stream-admin
           template:
             src: ngrok_systemd_user_service.j2
-            dest: "{{ lookup('env', 'HOME') }}/.config/systemd/user/ngrok@.service"
+            dest: "/home/stream-admin/.config/systemd/user/ngrok@.service"
           register: setup_ngrok_config
 
         - name: register uid of stream-admin
@@ -335,7 +325,7 @@
           become: yes
           become_user: stream-admin
           ansible.builtin.systemd:
-            name: ngrok@kasmvnc.service    #name after the @ must match the name of the endpoint in the config 
+            name: ngrok@streambox_frontend.service    #name after the @ must match the name of the endpoint in the config 
             scope: user
             daemon_reload: true
             state: restarted
@@ -380,10 +370,39 @@
           when: false
 
 
-- name: install nginx public-facing web server
+- name: install public-facing web server
   block:
-    - name: nginx setup
+    - name: caddy setup
       block:
-        #- name: install nginx
-        #- name: configure nginx
-        #- name: configure nginx services
+        - name: to do
+          debug: msg=todo
+
+
+- name: install restreamer
+  block:
+  - name: install restreamer
+    community.docker.docker_image:
+      name: "datarhei/restreamer"
+      tag: "latest"
+      source: pull
+
+  - name: configure and start restreamer
+    debug: msg='configure restreamer'
+
+- name: streambox primary docker compose
+  tags: docker-compose
+  block:
+    - name: copy streambox docker compose configurations
+      become_user: stream-admin
+      ansible.builtin.copy:
+        src: streambox-docker/
+        dest: /home/stream-admin/streambox-docker/streambox
+
+    - name: start streambox docker cluster
+      community.docker.docker_compose_v2:
+        project_src: /home/stream-admin/streambox-docker/streambox/
+
+
+- name: reboot
+  ansible.builtin.reboot:
+  when: false

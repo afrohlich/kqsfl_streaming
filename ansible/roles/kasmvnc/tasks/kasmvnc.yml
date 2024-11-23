@@ -1,0 +1,63 @@
+- name: kasmvnc get current release
+  ansible.builtin.get_url:
+    url: https://github.com/kasmtech/KasmVNC/releases/download/v{{kasmvnc_version}}/kasmvncserver_{{ansible_distribution_release}}_{{kasmvnc_version}}_amd64.deb
+    dest: /tmp/kasmvnc.deb
+
+- name: kasmvnc install current release
+  ansible.builtin.apt:
+    deb: /tmp/kasmvnc.deb
+
+- name: kasmvnc add user to ssl-cert group
+  user: name={{ kasmvnc_user }}
+        groups=ssl-cert
+        append=yes
+
+- name: kasmvnc configure user password
+  become: yes
+  become_user: "{{kasmvnc_user}}"
+  ansible.builtin.expect:
+    command: vncpasswd  -u stream-admin -w -r
+    responses:
+      'Password:': "{{kasmvnc_password}}" 
+      'Verify:': "{{kasmvnc_password}}"
+
+- name: create admin user vnc config directory
+  ansible.builtin.file:
+    path: "/home/{{kasmvnc_user}}/.vnc"
+    state: directory
+    owner: stream-admin
+
+- name: kasmvnc vnc config
+  ansible.builtin.template:
+    src: kasmvnc_user_config.j2
+    dest: .vnc/kasmvnc.yaml 
+    owner: stream-admin
+
+- name: create basic user systemd directory
+  ansible.builtin.file:
+    path: "/home/stream-admin/.config/systemd/user/"
+    state: directory
+    owner: stream-admin
+
+- name: kasmvnc configure systemd service
+  ansible.builtin.template:
+    src: kasmvnc_systemd_user_service.j2
+    dest: /home/stream-admin/.config/systemd/user/kasmvnc.service
+    owner: stream-admin
+
+- name: register uid of stream-admin
+  command: id -u stream-admin
+  register: stream_admin_uid
+
+- name: kasmvnc enable systemd service
+  become: yes
+  become_user: stream-admin
+  ansible.builtin.systemd:
+    service: kasmvnc.service
+    enabled: true
+    scope: user
+    daemon_reload: true
+    state: restarted
+  environment:
+    XDG_RUNTIME_DIR: /run/user/{{stream_admin_uid.stdout}}
+

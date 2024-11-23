@@ -1,0 +1,56 @@
+# https://github.com/timothycrosley/streamdeck-ui?tab=readme-ov-file
+# https://onlinux.systems/guides/20220323_how-to-set-up-elgatos-stream-deck-on-ubuntu-linux-2110/
+
+- name: streamdeck ui dependencies
+  ansible.builtin.apt:
+    pkg:
+      - libhidapi-libusb0
+      - libxcb-xinerama0
+  
+- name: streamdeck update udev rules
+  ansible.builtin.blockinfile:
+    path: /etc/udev/rules.d/70-streamdeck.rules
+    create: true
+    block: |
+      SUBSYSTEM=="usb", ATTRS{idVendor}=="0fd9", ATTRS{idProduct}=="0060", TAG+="uaccess"
+      SUBSYSTEM=="usb", ATTRS{idVendor}=="0fd9", ATTRS{idProduct}=="0063", TAG+="uaccess"
+      SUBSYSTEM=="usb", ATTRS{idVendor}=="0fd9", ATTRS{idProduct}=="006c", TAG+="uaccess"
+      SUBSYSTEM=="usb", ATTRS{idVendor}=="0fd9", ATTRS{idProduct}=="006d", TAG+="uaccess"
+
+- name: streamdeck reload udev rules
+  ansible.builtin.command: udevadm control --reload-rules
+
+- name: streamdeck ui install
+  community.general.pipx:
+    name: streamdeck_ui
+    include_injected: false
+    state: install
+
+- name: streamdeck service user
+  ansible.builtin.user:
+    name: streamdeck
+    system: true
+    home: /etc/streamdeck
+    create_home: true
+    shell: /usr/sbin/nologin
+    password: "!"  # lock user
+
+
+- name: streamdeck set configuration
+  # Export working json config from streamdeck ui
+  ansible.builtin.copy:
+    src: streamdeck-config.json
+    dest: /etc/streamdeck/.streamdeck_ui.json
+  when: false
+
+- name: streamdeck copy required artifacts
+  # Export working from streamdeck ui
+  ansible.builtin.copy:
+    src: images/
+    dest: ~/.streamdeck/images
+  when: false
+
+- name: streamdeck systemd service
+  ansible.builtin.template:
+    src: streamdeck_systemd_root_service.j2
+    dest: /etc/systemd/system/streamdeck.service

@@ -3,6 +3,7 @@ agent:
     authtoken: {{streambox_ngrok_token}}
 
 endpoints:
-  - name: vnc
+  - name: streambox_frontend
     url: {{ngrok_public_url}}
-    addr: 80
+    upstream:
+      url: localhost:80
