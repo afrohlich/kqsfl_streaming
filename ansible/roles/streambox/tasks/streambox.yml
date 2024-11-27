@@ -271,7 +271,7 @@
       become_user: stream-admin
       ansible.builtin.copy:
         src: streambox-docker/
-        dest: /home/stream-admin/streambox-docker/streambox
+        dest: /etc/docker/compose/streambox
 
     - name: start streambox docker cluster
       community.docker.docker_compose_v2:
