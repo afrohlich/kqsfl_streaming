@@ -1,0 +1,18 @@
+# This should be docker compose (https://docs.ansible.com/ansible/latest/collections/community/docker/docker_compose_module.html)
+# https://guacamole.apache.org/doc/1.5.5/gug/guacamole-docker.html#running-the-guacd-docker-image
+
+- name: copy docker compose configurations
+  ansible.builtin.copy:
+    src: guacamole-docker/
+    dest: /home/stream-admin/streambox-docker/guacamole
+
+- name: prepare guacamole server
+  shell: bash /home/stream-admin/streambox-docker/guacamole/prepare.sh
+
+- name: start guacamole docker cluster
+  community.docker.docker_compose_v2:
+    project_src: /home/stream-admin/streambox-docker/guacamole/
+
+- name: setup guacamole connections
+  shell: bash /home/stream-admin/streambox-docker/guacamole/configure_connections.sh
+  when: false
