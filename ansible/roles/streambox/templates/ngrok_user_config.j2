@@ -1,9 +1,0 @@
-version: "3"
-agent:
-    authtoken: {{streambox_ngrok_token}}
-
-endpoints:
-  - name: streambox_frontend
-    url: {{ngrok_public_url}}
-    upstream:
-      url: localhost:80

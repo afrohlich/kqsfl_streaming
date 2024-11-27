@@ -38,6 +38,11 @@
     insertafter: '^#WaylandEnable='
     line: 'WaylandEnable=false'
 
+- name: obsserver desktop auto-login
+  ansible.builtin.template:
+    src: autologin.conf.j2
+    dest: /etc/lightdm/lightdm.conf.d/12-autologin.conf
+
 - name: disable screen lock an lid close
   # https://askubuntu.com/questions/1014965/automatic-suspend-computer-will-suspend-very-soon-because-of-inactivity-ho
   # https://www.tecmint.com/disable-suspend-and-hibernation-in-linux/

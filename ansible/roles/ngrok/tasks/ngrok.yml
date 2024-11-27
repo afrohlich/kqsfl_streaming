@@ -1,0 +1,55 @@
+- name: ngrok get repo key
+  ansible.builtin.get_url:
+    url: https://ngrok-agent.s3.amazonaws.com/ngrok.asc
+    dest: /etc/apt/keyrings/ngrok.asc
+
+- name: ngrok add repo
+  ansible.builtin.apt_repository:
+    # To Do: map the Debian version 'bullseye' to corresponding ubuntu version provided by {{ ansible_distribution_release }}
+    repo: "deb [trusted=yes signed-by=/etc/apt/keyrings/ngrok.asc] https://ngrok-agent.s3.amazonaws.com bullseye main"
+    state: present
+
+- name: ngrok install
+  ansible.builtin.apt:
+    name: ngrok
+    update_cache: true
+    
+- name: ngrok make config dir
+  become: yes
+  become_user: {{ngrok_user}}
+  ansible.builtin.file:
+    path: "/home/{{ngrok_user}}/.config/ngrok/"
+    state: directory
+
+- name: ngrok user config setup
+  become: yes
+  become_user: {{ngrok_user}}
+  template:
+    src: ngrok_user_config.j2
+    dest: "/home/{{ngrok_user}}/.config/ngrok/ngrok.yml"
+
+- name: ngrok user systemd service
+  become: yes
+  become_user: {{ngrok_user}}
+  template:
+    src: ngrok_systemd_user_service.j2
+    dest: "/home/{{ngrok_user}}/.config/systemd/user/ngrok@.service"
+  register: setup_ngrok_config
+
+- name: ngrok register uid of ngrok user
+  command: id -u {{ngrok_user}}
+  register: ngrok_user_uid
+
+- name: ngrok restart service
+  become: yes
+  become_user: {{ngrok_user}}
+  ansible.builtin.systemd:
+    name: ngrok@{{item}}.service    #name after the @ must match the name of the endpoint in the config 
+    scope: user
+    daemon_reload: true
+    state: restarted
+    enabled: true
+  environment:
+    XDG_RUNTIME_DIR: /run/user/{{ngrok_user_uid.stdout}}
+  loop: {{ngrok_endpoints}}
+  when: setup_ngrok_config.changed
