@@ -1,51 +1,51 @@
 - name: test
   command: whoami
 
-- name: create essential users
-  tags: create_users
+- name: streambox create essential users
+  tags: streambox create_users
   block:
-    - name: create admin user
+    - name: streambox create admin user
       ansible.builtin.user:
         name: stream-admin
         shell: /bin/bash
 
-    - name: create admin user systemd directory
+    - name: streambox create admin user systemd directory
       # https://wiki.archlinux.org/title/Systemd/User
       ansible.builtin.file:
         path: "/home/stream-admin/.config/systemd/user/"
         state: directory
         owner: stream-admin
 
-    - name: create basic user
+    - name: streambox create basic user
       ansible.builtin.user:
         name: stream-user
         shell: /bin/bash
 
-    - name: create basic user systemd directory
+    - name: streambox create basic user systemd directory
       ansible.builtin.file:
         path: "/home/stream-user/.config/systemd/user/"
         state: directory
         owner: stream-user
 
-- name: python extras
+- name: streambox python extras
   block:
-    - name: python install deadsnakes ppa
+    - name: streambox install deadsnakes ppa
       ansible.builtin.apt_repository:
         repo: ppa:deadsnakes/ppa
 
-    - name: python python3.9
+    - name: streambox python3.9
       ansible.builtin.apt:
         pkg:
           - python3.9
         update_cache: true
 
-- name: configure desktop managers
+- name: streambox configure desktop managers
   ansible.builtin.import_tasks: desktop_setup.yml
 
-- name: install basic management tools
+- name: streambox install basic management tools
   tags: install_basics
   block:
-    - name: install networking tools
+    - name: streambox install networking tools
       ansible.builtin.apt:
         pkg:
           - vim
@@ -54,7 +54,7 @@
           - net-tools
         update_cache: true
 
-    - name: install system tools
+    - name: streambox install system tools
       ansible.builtin.apt:
         pkg:
           - inotify-tools
@@ -65,7 +65,7 @@
 - name: install docker
   tags: install_docker
   block:
-    - name: install required system packages
+    - name: streambox install required system packages
       ansible.builtin.apt:
         pkg:
           - apt-transport-https
@@ -77,47 +77,47 @@
         state: latest
         update_cache: true
 
-    - name: add an apt signing key
+    - name: streambox add an apt signing key
       ansible.builtin.apt_key:
         url: https://download.docker.com/linux/ubuntu/gpg
         state: present
 
-    - name: add docker repository
+    - name: streambox add docker repository
       ansible.builtin.apt_repository:
         repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
         state: present
 
-    - name: update apt and install docker-ce
+    - name: streambox update apt and install docker-ce
       ansible.builtin.apt:
         name: docker-ce
         state: latest
         update_cache: true
 
-    - name: install docker module for python
+    - name: streambox install docker module for python
       pip:
         name: docker
 
-- name: configure google drive sync for obs backups
+- name: streambox configure google drive sync for obs backups
   tags: configure_gdrive
   block:
-    - name: install rclone dependencies
+    - name: streambox install rclone dependencies
       ansible.builtin.apt:
         pkg: fuse3
 
-    - name: install rclone
+    - name: streambox install rclone
       ansible.builtin.include_role:
         name: stefangweichinger.ansible_rclone
       vars:
         rclone_version: "{{streambox_rclone_version}}"
         # Versions listed at https://github.com/rclone/rclone/releases
 
-    - name: create mount point
+    - name: streambox create mount point
       file:
         path: "{{streambox_rclone_gdrive_mount_point}}"
         state: directory
         owner: stream-admin
 
-    - name: configure rclone with GDrive mount
+    - name: streambox configure rclone with GDrive mount
       ansible.builtin.include_role:
         name: stefangweichinger.ansible_rclone
         # https://rclone.org/drive/#making-your-own-client-id
@@ -139,7 +139,7 @@
               description: connect to gdrive using oauth as a real authorized user
       when: streambox_rclone_gdrive_use_oauth|bool
 
-    - name: configure rclone with GDrive mount
+    - name: streambox configure rclone with GDrive mount
       ansible.builtin.include_role:
         name: stefangweichinger.ansible_rclone
         # https://rclone.org/drive/#making-your-own-client-id
@@ -158,9 +158,9 @@
               shared_with_me: true
               service_account_credentials: "{{streambox_rclone_gdrive_sa_token | mandatory | to_json}}"
               description: connect to gdrive using service account
-      when: not streambox_rclone_gdrive_use_oauth|bool
+      when: streambox not streambox_rclone_gdrive_use_oauth|bool
 
-    - name: create rclone systemd
+    - name: streambox create rclone systemd
       become: yes
       become_user: stream-admin
       ansible.builtin.template:
@@ -169,11 +169,11 @@
         owner: stream-admin
       register: setup_rclone_config
 
-    - name: register uid of stream-admin
+    - name: streambox register uid of stream-admin
       command: id -u stream-admin
       register: stream_admin_uid
 
-    - name: restart rclone mount
+    - name: streambox restart rclone mount
       become: yes
       become_user: stream-admin
       ansible.builtin.systemd:
@@ -186,7 +186,7 @@
         XDG_RUNTIME_DIR: /run/user/{{stream_admin_uid.stdout}}
       when: setup_rclone_config.changed
 
-- name: obs studio setup
+- name: streambox obs studio setup
   # https://obsproject.com/kb/linux-installation
   # https://github.com/pschmitt/obs-cli
   block:
@@ -207,11 +207,11 @@
         state: install
         python: 3.9
 
-- name: streamdeck setup
+- name: streambox streamdeck setup
   ansible.builtin.import_role:
     name: streamdeck
 
-- name: set up remote desktop software
+- name: streambox set up remote desktop software
   block:
     - name: xrdp setup
       ansible.builtin.import_role:
@@ -325,7 +325,7 @@
           become: yes
           become_user: stream-admin
           ansible.builtin.systemd:
-            name: ngrok@streambox_frontend.service    #name after the @ must match the name of the endpoint in the config 
+            name: ngrok.service    #name after the @ must match the name of the endpoint in the config 
             scope: user
             daemon_reload: true
             state: restarted

@@ -33,7 +33,15 @@
     dest: .vnc/kasmvnc.yaml 
     owner: stream-admin
 
-- name: create basic user systemd directory
+- name: kasmvnc physical display
+  # https://github.com/kasmtech/KasmVNC/issues/151
+  ansible.builtin.copy:
+    src: xstartup
+    dest: "/home/{{kasmvnc_user}}/.vnc/xstartup"
+    owner: stream-admin
+  when: kasmvnc_physical_display
+
+- name: kasmvnc create basic user systemd directory
   ansible.builtin.file:
     path: "/home/stream-admin/.config/systemd/user/"
     state: directory

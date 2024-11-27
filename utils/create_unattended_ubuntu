@@ -10,8 +10,30 @@
 #   Non-starter -> "Ubuntu Desktop, version 23.04 and later"
 # cloud-init
 #  https://www.pugetsystems.com/labs/hpc/how-to-make-ubuntu-autoinstall-iso-with-cloud-init-2213/?srsltid=AfmBOopvopqmvuaHzT6vSdd1hf2R3miiZG--itAYcTEu5gWklUrzdSnj
-
+#  https://linuxconfig.org/how-to-write-and-perform-ubuntu-unattended-installations-with-autoinstall
 
 set -euo pipefail
 
 echo "To Do"
+
+
+# lvm snapshoting and LUKS encryption
+#    https://gist.github.com/superjamie/d56d8bc3c9261ad603194726e3fef50f
+#    https://wiki.archlinux.org/title/Dm-crypt/Encrypting_an_entire_system#LUKS_on_LVM
+#    https://wiki.archlinux.org/title/LVM#Snapshots
+
+
+ROOT_PARTITION_DEV=/dev/nvme0n1p4
+BOOT_PARTITION_DEV=/dev/nvme0n1p4
+ROOT_LV_SIZE=60G   # Leave room for snapshotting
+
+cryptsetup open $ROOT_PARTITION_DEV luks1
+pvcreate /dev/mapper/luks1
+vgcreate vg1 /dev/mapper/luks1
+lvcreate -L $ROOT_VOLUME_SIZE -n lv_root vg1
+lvcreate -L 1G -n lv_swap vg1
+
+
+# kiosk mode
+https://udsenterprise.com/wp-content/uploads/2023/05/turning_ubuntu_20_desktop_into_kiosk_mode.pdf
+https://thepcspy.com/read/building-a-kiosk-computer-ubuntu-1404-chrome/

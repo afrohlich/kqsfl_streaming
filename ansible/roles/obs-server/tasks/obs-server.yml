@@ -1,0 +1,75 @@
+- name: test
+  command: whoami
+
+- name: obsserver create essential users
+  tags: obsserver create_users
+  block:
+    - name: obsserver create basic user
+      ansible.builtin.user:
+        name: "{{obsserver_user}}"
+        shell: /bin/bash
+
+    - name: streambox create basic user systemd directory
+      ansible.builtin.file:
+        path: "/home/{{obsserver_user}}/.config/systemd/user/"
+        state: directory
+        owner: "{{obsserver_user}}"
+
+- name: obsserver configure desktop managers
+  ansible.builtin.import_tasks: desktop_setup.yml
+
+- name: obsserver install basic management tools
+  tags: install_basics
+  block:
+    - name: streambox install networking tools
+      ansible.builtin.apt:
+        pkg:
+          - vim
+          - screen
+          - tmux
+          - net-tools
+        update_cache: true
+
+    - name: obsserver install system tools
+      ansible.builtin.apt:
+        pkg:
+          - inotify-tools
+          - dbus-x11
+          - net-tools
+        update_cache: true
+
+- name: obsserver obs studio setup
+  # https://obsproject.com/kb/linux-installation
+  # https://github.com/pschmitt/obs-cli
+  block:
+    - name: obs studio add apt repo
+      ansible.builtin.apt_repository:
+        repo: ppa:obsproject/obs-studio
+
+    - name: obs studio install
+      ansible.builtin.apt:
+        update_cache: yes
+        name: "obs-studio={{obsserver_obs_studio_version}}"
+        # versions: https://launchpad.net/~obsproject/+archive/ubuntu/obs-studio
+
+    - name: obs studio cli install
+      community.general.pipx:
+        name: obs-cli
+        include_injected: false
+        state: install
+        python: 3.9
+
+- name: obsserver streamdeck setup
+  ansible.builtin.import_role:
+    name: streamdeck
+
+- name: obsserver set up remote desktop software
+  block:
+    - name: kasmvnc setup
+      tags: kasmvnc_setup
+      ansible.builtin.import_role:
+        name: kasmvnc
+      vars:
+        kasmvnc_user: "{{obsserver_user}}"
+        kasmvnc_password: "{{obsserver_vnc_password}}"
+        kasmvnc_kiosk_mode: true

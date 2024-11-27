@@ -15,3 +15,7 @@ Use loginctl to show active X sessions and get information about the type of gra
 ```
 
 ''
+
+# https://www.virtualbox.org/manual/ch07.html
+# https://www.virtualbox.org/manual/ch09.html#autostart
+# https://www.baeldung.com/linux/virtualbox-vm-start-on-boot
