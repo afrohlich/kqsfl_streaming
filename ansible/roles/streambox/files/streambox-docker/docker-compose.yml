@@ -16,6 +16,20 @@ networks:
     driver: bridge
 
 services:
+  obs-server:
+    image: kasmweb/ubuntu-focal-desktop:1.16.1
+    restart: unless-stopped
+    ports:
+      - "6901:6901"
+    env:
+      - VNC_PW: password
+    shm_size: 512m
+    volumes:
+      - ${HOME}/obs-studio:/home/kasm_user/.config/obs-studio
+      - ${HOME}/mnt/gdrive-obs/:/home/kasm_user/mnt/gdrive-obs
+    networks:
+      - streambox_compose
+
   caddy:
     image: caddy:latest
     restart: unless-stopped

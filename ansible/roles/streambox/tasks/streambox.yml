@@ -251,9 +251,13 @@
             state: restarted
   
 - name: streambox ngrok
-  import_role: ngrok
+  import_role:
+    name: ngrok
+  vars:
+    ngrok_user: "stram-user"
+    
 
-- name: install restreamer
+- name: streambox install restreamer
   block:
   - name: install restreamer
     community.docker.docker_image:
