@@ -35,7 +35,7 @@
     src: ngrok_config.j2
     dest: "/etc/ngrok/ngrok.yml"
 
-- name: ngrok user systemd service
+- name: ngrok systemd service
   template:
     src: ngrok_systemd_service.j2
     dest: "/lib/systemd/system/ngrok@.service"
@@ -44,7 +44,6 @@
 - name: ngrok restart service
   ansible.builtin.systemd:
     name: ngrok@{{item}}.service    #name after the @ must match the name of the endpoint in the config 
-    scope: user
     daemon_reload: true
     state: restarted
     enabled: true

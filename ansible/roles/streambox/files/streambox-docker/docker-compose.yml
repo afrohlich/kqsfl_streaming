@@ -21,8 +21,8 @@ services:
     restart: unless-stopped
     ports:
       - "6901:6901"
-    env:
-      - VNC_PW: password
+    environment:
+      - VNC_PW=password
     shm_size: 512m
     volumes:
       - ${HOME}/obs-studio:/home/kasm_user/.config/obs-studio

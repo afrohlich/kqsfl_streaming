@@ -27,6 +27,11 @@
         state: directory
         owner: stream-user
 
+- name: streambox create keyring dir
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    mode: directory
+
 - name: streambox python extras
   block:
     - name: streambox install deadsnakes ppa
@@ -38,6 +43,10 @@
         pkg:
           - python3.9
         update_cache: true
+
+    - name: streambox pipx python3.9
+      ansible.builtin.command: python3.9 -m pip install pipx
+        
 
 - name: streambox configure desktop managers
   ansible.builtin.import_tasks: desktop_setup.yml
@@ -74,6 +83,7 @@
           - software-properties-common
           - python3-setuptools
           - python3-pip
+          - python3.8-venv
         state: latest
         update_cache: true
 
@@ -158,7 +168,7 @@
               shared_with_me: true
               service_account_credentials: "{{streambox_rclone_gdrive_sa_token | mandatory | to_json}}"
               description: connect to gdrive using service account
-      when: streambox not streambox_rclone_gdrive_use_oauth|bool
+      when: not streambox_rclone_gdrive_use_oauth|bool
 
     - name: streambox create rclone systemd
       become: yes
@@ -201,6 +211,7 @@
         # versions: https://launchpad.net/~obsproject/+archive/ubuntu/obs-studio
 
     - name: obs studio cli install
+      become_user: stream-admin
       community.general.pipx:
         name: obs-cli
         include_injected: false
@@ -272,14 +283,13 @@
   tags: docker-compose
   block:
     - name: copy streambox docker compose configurations
-      become_user: stream-admin
       ansible.builtin.copy:
         src: streambox-docker/
         dest: /etc/docker/compose/streambox
 
     - name: start streambox docker cluster
       community.docker.docker_compose_v2:
-        project_src: /home/stream-admin/streambox-docker/streambox/
+        project_src: /etc/docker/compose/streambox/
 
 
 - name: reboot
