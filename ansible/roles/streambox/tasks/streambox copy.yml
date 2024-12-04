@@ -7,11 +7,7 @@
     - name: streambox create admin user
       ansible.builtin.user:
         name: stream-admin
-        home: /home/stream-admin/
-        create_home: true
         shell: /bin/bash
-        groups: video,render
-        append: yes
 
     - name: streambox create admin user systemd directory
       # https://wiki.archlinux.org/title/Systemd/User
@@ -22,26 +18,20 @@
 
     - name: streambox create basic user
       ansible.builtin.user:
-        name: stream-user
+        name: obs-user
         shell: /bin/bash
 
     - name: streambox create basic user systemd directory
       ansible.builtin.file:
-        path: "/home/stream-user/.config/systemd/user/"
+        path: "/home/obs-user/.config/systemd/user/"
         state: directory
-        owner: stream-user
+        owner: obs-user
 
-    - name: streambox create basic user autostart directory
-      ansible.builtin.file:
-        path: "/home/stream-user/.config/autostart/"
-        state: directory
-        owner: stream-user
+    - name: streambox disable lock screen timeout
+      debug: msg=todo
 
-    - name: streambox obs-user autstart kiosk
-      ansible.builtin.template:
-        src: obs_kiosk_autostart.desktop.j2
-        dest: /home/stream-user/.config/autostart/obs-kiosk.desktop
-        owner: stream-user
+    - name: strambox autostart firefox
+      debug: msg=todo
 
 - name: streambox create keyring dir
   ansible.builtin.file:
@@ -281,7 +271,8 @@
   import_role:
     name: ngrok
   vars:
-    ngrok_user: "stram-user"    
+    ngrok_user: "stram-user"
+    
 
 - name: streambox install restreamer
   block:
@@ -305,7 +296,6 @@
     - name: start streambox docker cluster
       community.docker.docker_compose_v2:
         project_src: /etc/docker/compose/streambox/
-        build: always
       environment:
         KASM_VNC_PASSWORD: "{{streambox_vnc_password}}"
 

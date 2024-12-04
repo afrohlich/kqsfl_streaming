@@ -61,6 +61,15 @@
     gsettings set org.gnome.settings-daemon.plugins.power sleep-inactive-ac-type 'nothing'
     gsettings set org.gnome.settings-daemon.plugins.power lid-close-ac-action 'nothing'
 
+- name: set screen size
+  command: xrandr --output `xrandr -q | grep -w connected | cut -d' ' -f1` --mode 1440x900
+
+- name: desktop disable gnome init
+  ansible.builtin.apt:
+    name: gnome-initial-setup
+    state: absent
+    purge: true
+
 - name: desktop setup reboot
   ansible.builtin.reboot:
     reboot_timeout: 3600

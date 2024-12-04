@@ -17,26 +17,38 @@ networks:
 
 services:
   obs-server:
-    image: kasmweb/ubuntu-focal-desktop:1.16.1
+    image: obs-server
+    build: ./obs-server
+    pull_policy: never
+    init: true
     restart: unless-stopped
     ports:
       - "6901:6901"
     environment:
-      - VNC_PW=password
+      - VNC_PW=${KASM_VNC_PASSWORD}
     shm_size: 512m
     volumes:
-      - ${HOME}/obs-studio:/home/kasm_user/.config/obs-studio
-      - ${HOME}/mnt/gdrive-obs/:/home/kasm_user/mnt/gdrive-obs
+      - ${HOME}/obs-studio:/home/kasm-user/.config/obs-studio
+      - ${HOME}/mnt/gdrive-obs/:/home/kasm-user/mnt/gdrive-obs
+      - /dev/dri:/dev/dri
     networks:
       - streambox_compose
+#    deploy:
+      # https://www.doscher.com/gpu-passthrough-for-intel/
+#      resources:
+#        reservations:
+#         devices:
+#            - driver: nvidia
+#              count: 1
+#              capabilities: [gpu]
 
   caddy:
     image: caddy:latest
     restart: unless-stopped
     ports:
-      - "80:80"
-      - "443:443"
-      - "443:443/udp"
+      - "127.0.0.1:80:80"
+      - "127.0.0.1:443:443"
+      - "127.0.0.1:443:443/udp"
     volumes:
       - ./webserver/Caddyfile:/etc/caddy/Caddyfile
       - ./webserver/site:/srv
@@ -51,7 +63,7 @@ services:
     image: louislam/uptime-kuma:latest
     restart: always
     ports:
-      - "3001:3001"
+      - "127.0.0.1:3001:3001"
     volumes:
       - uptime-kuma:/app/data
     networks:
