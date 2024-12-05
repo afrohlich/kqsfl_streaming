@@ -17,6 +17,7 @@ networks:
 
 services:
   obs-server:
+    container_name: obs-server
     image: obs-server
     build: ./obs-server
     pull_policy: never
@@ -43,6 +44,7 @@ services:
 #              capabilities: [gpu]
 
   caddy:
+    container_name: caddy
     image: caddy:latest
     restart: unless-stopped
     ports:
@@ -69,6 +71,14 @@ services:
       - "1337:1337"
     restart: unless-stopped
 
+  restreamer:
+    # https://docs.olivetin.app/install-compose.html
+    container_name: restreamer
+    image: datarhei/restreamer
+#    volumes:
+#    ports:
+#    restart: unless-stopped
+
   authelia:
     image: authelia/authelia
     container_name: authelia
@@ -76,7 +86,6 @@ services:
       - ./authelia:/config
     networks:
       - streambox_compose
-    labels:
     expose:
       - 9091
     restart: unless-stopped
@@ -90,7 +99,7 @@ services:
     volumes:
       - redis_data:/data
     networks:
-      - net
+      - streambox_compose
     expose:
       - 6379
     restart: unless-stopped
