@@ -88,7 +88,7 @@ services:
     image: redis:alpine
     container_name: redis
     volumes:
-      - ./redis:/data
+      - redis_data:/data
     networks:
       - net
     expose:
@@ -98,3 +98,4 @@ services:
 volumes:
   caddy_data:
   caddy_config:
+  redis_data:

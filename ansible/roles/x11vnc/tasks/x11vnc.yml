@@ -22,7 +22,7 @@
         enabled: true
         daemon_reload: true
 
-- name: novnc setup
+- name: x11vnc novnc setup
   tags: vnc_x11vnc_install
   block:
     - name: x11vnc novnc install
@@ -36,6 +36,8 @@
         dest: /lib/systemd/system/novnc.service
 
     - name: x11vnc novnc enable service
+      ansible.builtin.systemd:
+        service: novnc.service
         state: restarted
         enabled: true
         daemon_reload: true
