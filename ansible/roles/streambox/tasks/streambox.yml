@@ -287,19 +287,6 @@
 - name: streambox ngrok
   import_role:
     name: ngrok
-  vars:
-    ngrok_user: "stram-user"    
-
-- name: streambox install restreamer
-  block:
-  - name: install restreamer
-    community.docker.docker_image:
-      name: "datarhei/restreamer"
-      tag: "latest"
-      source: pull
-
-  - name: configure and start restreamer
-    debug: msg='configure restreamer'
 
 - name: streambox primary docker compose
   tags: docker-compose
