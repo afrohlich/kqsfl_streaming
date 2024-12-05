@@ -1,0 +1,10 @@
+[Unit]
+Description=VNC Web Server
+After=graphical.target network.target
+
+[Service]
+Restart=always
+ExecStart=/snap/bin/novnc --listen 8080 --vnc localhost:5900
+
+[Install]
+WantedBy=graphical.target

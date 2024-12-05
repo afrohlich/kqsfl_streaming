@@ -59,17 +59,42 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
-  kuma:
-    image: louislam/uptime-kuma:latest
-    restart: always
-    ports:
-      - "127.0.0.1:3001:3001"
+  olivetin:
+    # https://docs.olivetin.app/install-compose.html
+    container_name: olivetin
+    image: jamesread/olivetin
     volumes:
-      - uptime-kuma:/app/data
+      - ./olivetin/config:/config
+    ports:
+      - "1337:1337"
+    restart: unless-stopped
+
+authelia:
+    image: authelia/authelia
+    container_name: authelia
+    volumes:
+      - ./authelia:/config
     networks:
       - streambox_compose
+    labels:
+    expose:
+      - 9091
+    restart: unless-stopped
+    healthcheck:
+      ## In production the healthcheck section should be enabled.
+      disable: true
+
+  redis:
+    image: redis:alpine
+    container_name: redis
+    volumes:
+      - ./redis:/data
+    networks:
+      - net
+    expose:
+      - 6379
+    restart: unless-stopped
 
 volumes:
   caddy_data:
   caddy_config:
-  uptime-kuma:
