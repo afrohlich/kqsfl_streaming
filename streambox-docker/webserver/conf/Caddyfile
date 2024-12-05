@@ -1,0 +1,14 @@
+:80 {
+  reverse_proxy /host/term/* host.docker.internal:8082
+  handle_path /host/vnc/* {
+    reverse_proxy host.docker.internal:8080
+
+    @dir_matcher path_regexp \/$
+    respond @dir_matcher 403
+  }
+
+  file_server {
+    root /srv
+  }
+
+}
