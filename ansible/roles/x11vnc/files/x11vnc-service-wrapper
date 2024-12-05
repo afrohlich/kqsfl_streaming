@@ -16,6 +16,7 @@ fi
 
 /usr/bin/x11vnc -display WAIT:%i \
    -find -env FD_XDM=1 -auth $xmcookie \
+   -listen localhost -no6 \
    -forever -shared -loop -nolookup -noxdamage -repeat \
    -rfbauth /etc/x11vnc/x11vnc.passwd \
    -rfbport 5900

@@ -65,7 +65,6 @@
     - name: streambox pipx python3.9
       ansible.builtin.command: python3.9 -m pip install pipx
         
-
 - name: streambox configure desktop managers
   ansible.builtin.import_tasks: desktop_setup.yml
 
@@ -129,6 +128,12 @@
     - name: streambox install docker module for python
       pip:
         name: docker
+
+    - name: streambox docker allow admin user
+      ansible.builtin.user:
+        name: stream-admin
+        groups: docker
+        append: yes
 
 - name: streambox configure google drive sync for obs backups
   tags: configure_gdrive
@@ -247,22 +252,10 @@
 
 - name: streambox set up remote desktop software
   block:
-    - name: xrdp setup
-      ansible.builtin.import_role:
-        name: robertdebock.xrdp
-
     - name: x11vnc setup
       tags: vnc_x11vnc_install
       ansible.builtin.import_role:
         name: x11vnc
-
-    - name: kasmvnc setup
-      tags: kasmvnc_setup
-      ansible.builtin.import_role:
-        name: kasmvnc
-      vars:
-        kasmvnc_user: "stream-admin"
-        kasmvnc_password: "{{streambox_vnc_password}}"
 
     - name: steambox remote tty setup
       # https://github.com/tsl0922/ttyd

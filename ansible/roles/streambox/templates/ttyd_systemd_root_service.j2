@@ -3,7 +3,7 @@ Description=ttyd terminal via web browser
 After=network.target
 
 [Service]
-ExecStart=/snap/bin/ttyd -i docker0 --writable -p {{streambox_ttyd_port}} --base-path login start
+ExecStart=/snap/bin/ttyd -i docker0 --writable -p {{streambox_ttyd_port}} --base-path /host/term login
 KillMode=process
 IgnoreSIGPIPE=true
 Restart=always

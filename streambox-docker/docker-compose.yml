@@ -16,6 +16,24 @@ networks:
     driver: bridge
 
 services:
+  caddy:
+    container_name: caddy
+    image: caddy:latest
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./webserver/conf:/etc/caddy/
+      - ./webserver/site:/srv
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - streambox_compose
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
   obs-server:
     container_name: obs-server
     image: obs-server
@@ -23,8 +41,8 @@ services:
     pull_policy: never
     init: true
     restart: unless-stopped
-    ports:
-      - "6901:6901"
+    expose:
+      - 6901
     environment:
       - VNC_PW=${KASM_VNC_PASSWORD}
     shm_size: 512m
@@ -43,32 +61,14 @@ services:
 #              count: 1
 #              capabilities: [gpu]
 
-  caddy:
-    container_name: caddy
-    image: caddy:latest
-    restart: unless-stopped
-    ports:
-      - "127.0.0.1:80:80"
-      - "127.0.0.1:443:443"
-      - "127.0.0.1:443:443/udp"
-    volumes:
-      - ./webserver/Caddyfile:/etc/caddy/Caddyfile
-      - ./webserver/site:/srv
-      - caddy_data:/data
-      - caddy_config:/config
-    networks:
-      - streambox_compose
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-
   olivetin:
     # https://docs.olivetin.app/install-compose.html
     container_name: olivetin
     image: jamesread/olivetin
     volumes:
       - ./olivetin/config:/config
-    ports:
-      - "1337:1337"
+    expose:
+      - 1337
     restart: unless-stopped
 
   restreamer:

@@ -1,4 +1,8 @@
 :80 {
-  reverse_proxy /term/* host.docker.internal:8082
-  reverse_proxy /kasmvnc/* host.docker.internal:8445
+  reverse_proxy /host/term/* host.docker.internal:8082
+  reverse_proxy /obs/vnc/* host.docker.internal:8445
+
+  file_server {
+    root /srv
+  }
 }

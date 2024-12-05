@@ -18,7 +18,7 @@
   ansible.builtin.expect:
     command: vncpasswd  -u stream-admin -w -r
     responses:
-      'Password:': "{{kasmvnc_password}}" 
+      'Password:': "{{kasmvnc_password}}"
       'Verify:': "{{kasmvnc_password}}"
 
 - name: create admin user vnc config directory
