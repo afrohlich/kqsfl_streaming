@@ -7,8 +7,8 @@
     - name: streambox create admin user
       ansible.builtin.user:
         name: stream-admin
-        home: /home/stream-admin/
-        create_home: true
+#        home: /home/stream-admin/
+#        create_home: true
         shell: /bin/bash
         groups: video,render
         append: yes
@@ -23,6 +23,8 @@
     - name: streambox create basic user
       ansible.builtin.user:
         name: stream-user
+#        home: /home/stream-user/
+#        create_home: true
         shell: /bin/bash
 
     - name: streambox create basic user systemd directory
@@ -115,7 +117,12 @@
 
     - name: streambox update apt and install docker-ce
       ansible.builtin.apt:
-        name: docker-ce
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
         state: latest
         update_cache: true
 
