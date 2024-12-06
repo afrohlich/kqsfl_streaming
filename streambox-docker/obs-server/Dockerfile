@@ -46,3 +46,7 @@ USER 1000
 # entrypoint point path must match STARTUP directory
 ENTRYPOINT ["/dockerstartup/entrypoint.sh"]
 CMD ["--tail-log"]
+
+# Notes
+# https://kasmweb.com/docs/latest/how_to/building_images.html
+# https://github.com/linuxserver/docker-baseimage-kasmvnc

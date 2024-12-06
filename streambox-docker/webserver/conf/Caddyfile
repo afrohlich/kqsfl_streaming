@@ -7,7 +7,15 @@
     respond @dir_matcher 403
   }
 
-  file_server {
+  handle_path /obs/vnc/* {
+    reverse_proxy https://obs-server:6901 {
+      transport http {
+        tls_insecure_skip_verify
+      }
+    }
+  }
+
+  file_server /* {
     root /srv
   }
 
