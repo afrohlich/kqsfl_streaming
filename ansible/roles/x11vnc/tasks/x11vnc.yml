@@ -17,8 +17,8 @@
 
     - name: x11vnc create global config dir
       ansible.builtin.file:
-      path: /etc/x11vnc/
-      state: directory
+        path: /etc/x11vnc/
+        state: directory
 
     - name: x11vnc set global password
       ansible.builtin.command: "x11vnc -storepasswd '{{streambox_vnc_password}}' /etc/x11vnc/x11vnc.passwd"
