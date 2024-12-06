@@ -1,5 +1,9 @@
 # Ubuntu Desktop with VNC in Docker
 
+Troubelshooting
+
+- https://kasmweb.com/docs/latest/guide/troubleshooting/advanced_connection_troubleshooting.html#validate-session-authorization
+
 Option 1
 
 Basing my image off of kasm core images and replace the INST_SCRIPTS

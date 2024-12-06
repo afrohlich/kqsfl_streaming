@@ -26,12 +26,11 @@
 
   redir /obs/vnc /obs/vnc/
   handle /obs/vnc/* {
-    handle /obs/vnc/ {
-      @missing_obs_ws_path {
-        not query path=/obs/vnc/websockify
-      }
-      redir @missing_obs_ws_path /obs/vnc/vnc.html?path=/obs/vnc/websockify
+    @missing_obs_ws_path {
+      path /obs/vnc/
+      not query path=/obs/vnc/websockify
     }
+    redir @missing_obs_ws_path /obs/vnc/?path=/obs/vnc/websockify
 
     handle_path /obs/vnc/* {
       reverse_proxy https://obs-server:6901 {
@@ -39,7 +38,6 @@
           tls_insecure_skip_verify
         }
       }
-      uri query path /host/vnc/websockify
     }
   }
 
