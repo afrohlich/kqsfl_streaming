@@ -1,17 +1,45 @@
 :80 {
-  reverse_proxy /host/term/* host.docker.internal:8082
-  handle_path /host/vnc/* {
-    reverse_proxy host.docker.internal:8080
-
-    @dir_matcher path_regexp \/$
-    respond @dir_matcher 403
+  redir /host/term /host/term/
+  handle /host/term/* {
+    reverse_proxy /host/term /host/term/
+    reverse_proxy /host/term/* host.docker.internal:8082
   }
 
-  handle_path /obs/vnc/* {
-    reverse_proxy https://obs-server:6901 {
-      transport http {
-        tls_insecure_skip_verify
+  redir /host/vnc /host/vnc/vnc.html?path=/host/vnc/websockify
+  handle /host/vnc/* {
+    redir /host/vnc/ /host/vnc/vnc.html
+    handle /host/vnc/vnc.html {
+      @missing_host_ws_path {
+        not query path=/host/vnc/websockify
       }
+      redir @missing_host_ws_path /host/vnc/vnc.html?path=/host/vnc/websockify
+    }
+
+    handle_path /host/vnc/* {
+      reverse_proxy host.docker.internal:8080
+
+      # NoVNC doesn't protect against directory traveral
+      @dir_matcher path_regexp \/$
+      respond @dir_matcher 403
+    }
+  }
+
+  redir /obs/vnc /obs/vnc/
+  handle /obs/vnc/* {
+    handle /obs/vnc/ {
+      @missing_obs_ws_path {
+        not query path=/obs/vnc/websockify
+      }
+      redir @missing_obs_ws_path /obs/vnc/vnc.html?path=/obs/vnc/websockify
+    }
+
+    handle_path /obs/vnc/* {
+      reverse_proxy https://obs-server:6901 {
+        transport http {
+          tls_insecure_skip_verify
+        }
+      }
+      uri query path /host/vnc/websockify
     }
   }
 

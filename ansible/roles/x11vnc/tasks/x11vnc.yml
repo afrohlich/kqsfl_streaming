@@ -15,6 +15,14 @@
     - name: x11vnc configure systemd
       ansible.builtin.import_tasks: install_systemd_lightdm.yml
 
+    - name: x11vnc create global config dir
+      ansible.builtin.file:
+      path: /etc/x11vnc/
+      state: directory
+
+    - name: x11vnc set global password
+      ansible.builtin.command: "x11vnc -storepasswd '{{streambox_vnc_password}}' /etc/x11vnc/x11vnc.passwd"
+
     - name: x11vnc enable service
       ansible.builtin.systemd:
         service: x11vnc.service
