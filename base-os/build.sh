@@ -6,7 +6,12 @@
 # https://help.ubuntu.com/community/LiveCDCustomization
 # https://wiki.debian.org/RepackBootableISO
 
-set -xeuo pipefail
+set -euo pipefail
+
+if [ $EUID -ne 0 ] ; then
+    echo "script must be run as root"
+    exit
+fi
 
 script_dir=$(realpath $(dirname $0))
 base_iso_url="https://releases.ubuntu.com/20.04.6/ubuntu-20.04.6-live-server-amd64.iso"
