@@ -11,27 +11,27 @@ set -xeuo pipefail
 script_dir=$(realpath $(dirname $0))
 base_iso_url="https://releases.ubuntu.com/20.04.6/ubuntu-20.04.6-live-server-amd64.iso"
 base_iso_name=$(echo $base_iso_url | sed 's/.*\///')
-build_dir=/tmp/streambox_iso/
-base_iso="$iso_build_dir/$base_iso_name"
+base_build_dir=/tmp/streambox_iso/
+base_iso="$base_build_dir/$base_iso_name"
 iso_mount_dir="$build_dir/isomount"
 iso_build_dir="$build_dir/extracted"
-squashfs_dir="$build_dir/squashfs-root"
+squashfs_build_dir="$build_dir/squashfs-root"
 squashfs_update_script=
 
 
-autoinstall_configs=$script_dir/autoinstall
+autoinstall_cfg_dir=$script_dir/autoinstall
 grub_cfg="$script_dir/grub.cfg"
 isolinux_txt_cfg="$script_dir/isolinux.txt.cfg"
 
 
 cleanup_squashfs() {
-    umount $squashfs_dir/run
-    rm $squashfs_dir
+    umount $squashfs_build_dir/run
+    rm $squashfs_build_dir
 }
 
 cleanup() {
     echo cleaning up
-    if [ -e "$squashfs_dir" ] ;  then
+    if [ -e "$squashfs_build_dir" ] ;  then
 	echo cleaning up squashfs
         cleanup_squashfs
     fi
@@ -47,8 +47,8 @@ cleanup() {
 trap cleanup EXIT
 
 if ! [ -e "$base_iso" ] ; then
-    echo "Downloading $iso_base_url as $base_iso"
-    wget -O $base_iso $iso_base_url
+    echo "Downloading $base_iso_url as $base_iso"
+    wget -O $base_iso $base_iso_url
 fi
 
 mount -o loop $base_iso $iso_mount_dir
@@ -63,15 +63,15 @@ cp $isolinux_txt_cfg  $iso_build_dir/isolinux/txt.cfg
 
 if ! [ -z "$squashfs_update_script" ] ;  then
     echo "Configuring squashfs for iso"
-    unsquashfs -dest $squashfs_dir $iso_mount_dir/casper/filesystem.squashfs
-    cp /etc/hosts $squashfs_dir/etc/hosts
-    mount -o bind /run/ $squashfs_dir/run
-    mount --bind /dev/ $squashfs_dir/dev
+    unsquashfs -dest $squashfs_build_dir $iso_mount_dir/casper/filesystem.squashfs
+    cp /etc/hosts $squashfs_build_dir/etc/hosts
+    mount -o bind /run/ $squashfs_build_dir/run
+    mount --bind /dev/ $squashfs_build_dir/dev
 
-    chroot $squashfs_dir $squashfs_update_script
+    chroot $squashfs_build_dir $squashfs_update_script
 
 else
-    echo "Skipping squashfs config. No squashfs update script supplied"
+    echo "Skipping squashfs config. No squashfs update script provided"
 fi
 
 
@@ -109,4 +109,4 @@ xorriso \
   -boot_image any emul_type=no_emulation \
   -boot_image any load_size=4161536 \
   -boot_image isolinux partition_entry=gpt_basdat \
-  -boot_image isolinux partition_entry=apm_hfsplus 
+  -boot_image isolinux partition_entry=apm_hfsplus
