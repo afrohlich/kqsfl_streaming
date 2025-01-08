@@ -6,7 +6,7 @@
 # https://help.ubuntu.com/community/LiveCDCustomization
 # https://wiki.debian.org/RepackBootableISO
 
-set -euo pipefail
+set -xeuo pipefail
 
 if [ $EUID -ne 0 ] ; then
     echo "script must be run as root"
@@ -18,9 +18,9 @@ base_iso_url="https://releases.ubuntu.com/20.04.6/ubuntu-20.04.6-live-server-amd
 base_iso_name=$(echo $base_iso_url | sed 's/.*\///')
 base_build_dir=/tmp/streambox_iso/
 base_iso="$base_build_dir/$base_iso_name"
-iso_mount_dir="$build_dir/isomount"
-iso_build_dir="$build_dir/extracted"
-squashfs_build_dir="$build_dir/squashfs-root"
+iso_mount_dir="$base_build_dir/isomount"
+iso_build_dir="$base_build_dir/extracted"
+squashfs_build_dir="$base_build_dir/squashfs-root"
 squashfs_update_script=
 
 
