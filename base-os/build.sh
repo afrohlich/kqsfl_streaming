@@ -6,7 +6,7 @@
 # https://help.ubuntu.com/community/LiveCDCustomization
 # https://wiki.debian.org/RepackBootableISO
 
-set -xeuo pipefail
+set -euo pipefail
 
 if [ $EUID -ne 0 ] ; then
     echo "script must be run as root"
@@ -43,12 +43,12 @@ cleanup() {
         cleanup_squashfs
     fi
 
-    if [ -e "$iso_build_dir" ] ; then
-        echo "Removing $iso_build_dir"
-        rm -r $iso_build_dir
-    fi
-    
     umount $iso_mount_dir
+
+    echo "Removing $iso_mount_dir"
+    rm -r $iso_mount_dir 2>/dev/null
+    echo "Removing $iso_build_dir"
+    rm -r $iso_build_dir 2>/dev/null
 }
 
 trap cleanup EXIT
@@ -57,22 +57,29 @@ trap cleanup EXIT
 echo "Starting iso build"
 
 
-echo "Creating base build directory - $base_build_dir"
-mkdir $base_build_dir
+if [ ! -e $base_build_dir ] ; then
+    echo "Creating base build directory - $base_build_dir"
+    mkdir $base_build_dir
+else
+    echo "Base build directory already exists"
+fi
 
 if ! [ -e "$base_iso" ] ; then
     echo "Downloading $base_iso_url as $base_iso"
     wget -O $base_iso $base_iso_url
+else
+    echo "$base_iso_url already downloaded"
 fi
 
 echo "Extracting base iso to iso build dir - $base_build_dir"
+mkdir -p $iso_mount_dir
 mount -o loop $base_iso $iso_mount_dir
-mkdir $iso_build_dir
+mkdir -p $iso_build_dir
 rsync -a $iso_mount_dir $iso_build_dir
 
 
 echo "Copying custom config files to boot image"
-cp $autoinstall_cfg_dir  $iso_build_dir/subiquity.autoinstall
+cp -r $autoinstall_cfg_dir  $iso_build_dir/subiquity.autoinstall
 cp $grub_cfg  $iso_build_dir/grub/grub.cfg
 cp $isolinux_txt_cfg  $iso_build_dir/isolinux/txt.cfg
 
