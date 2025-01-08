@@ -16,7 +16,7 @@ fi
 script_dir=$(realpath $(dirname $0))
 base_iso_url="https://releases.ubuntu.com/20.04.6/ubuntu-20.04.6-live-server-amd64.iso"
 base_iso_name=$(echo $base_iso_url | sed 's/.*\///')
-base_build_dir=/tmp/streambox_iso/
+base_build_dir=/tmp/streambox_iso
 base_iso="$base_build_dir/$base_iso_name"
 iso_mount_dir="$base_build_dir/isomount"
 iso_build_dir="$base_build_dir/extracted"
@@ -28,10 +28,12 @@ autoinstall_cfg_dir=$script_dir/autoinstall
 grub_cfg="$script_dir/grub.cfg"
 isolinux_txt_cfg="$script_dir/isolinux.txt.cfg"
 
+iso_output_name=streambox-autoinstall.iso
 
 cleanup_squashfs() {
     umount $squashfs_build_dir/run
-    rm $squashfs_build_dir
+    umount $squashfs_build_dir/dev
+    rm -r $squashfs_build_dir
 }
 
 cleanup() {
@@ -51,16 +53,25 @@ cleanup() {
 
 trap cleanup EXIT
 
+
+echo "Starting iso build"
+
+
+echo "Creating base build directory - $base_build_dir"
+mkdir $base_build_dir
+
 if ! [ -e "$base_iso" ] ; then
     echo "Downloading $base_iso_url as $base_iso"
     wget -O $base_iso $base_iso_url
 fi
 
+echo "Extracting base iso to iso build dir - $base_build_dir"
 mount -o loop $base_iso $iso_mount_dir
 mkdir $iso_build_dir
 rsync -a $iso_mount_dir $iso_build_dir
 
 
+echo "Copying custom config files to boot image"
 cp $autoinstall_cfg_dir  $iso_build_dir/subiquity.autoinstall
 cp $grub_cfg  $iso_build_dir/grub/grub.cfg
 cp $isolinux_txt_cfg  $iso_build_dir/isolinux/txt.cfg
@@ -93,8 +104,10 @@ if [ -z "$iso_build_dir" ] ; then
 fi 
 
 
+echo "Building the ISO $iso_output_name"
+
 xorriso \
-  -outdev streambox-autoinstall.iso \
+  -outdev $iso_output_name \
   -map $iso_build_dir / -- \
   -volid 'StreamboxISO' \
   -boot_image any partition_cyl_align=off \
@@ -115,3 +128,6 @@ xorriso \
   -boot_image any load_size=4161536 \
   -boot_image isolinux partition_entry=gpt_basdat \
   -boot_image isolinux partition_entry=apm_hfsplus
+
+echo "Build complete"
+echo "Output ISO created - $(pwd)/$iso_output_name"
