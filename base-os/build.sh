@@ -72,17 +72,19 @@ else
 fi
 
 echo "Extracting base iso to iso build dir - $base_build_dir"
+set -x
 mkdir -p $iso_mount_dir
 mount -o loop $base_iso $iso_mount_dir
 mkdir -p $iso_build_dir
-rsync -a $iso_mount_dir $iso_build_dir
-
+rsync -a $iso_mount_dir/ $iso_build_dir
+set +x
 
 echo "Copying custom config files to boot image"
-cp -r $autoinstall_cfg_dir  $iso_build_dir/subiquity.autoinstall
-cp $grub_cfg  $iso_build_dir/grub/grub.cfg
-cp $isolinux_txt_cfg  $iso_build_dir/isolinux/txt.cfg
-
+set -x
+cp -v -r $autoinstall_cfg_dir  $iso_build_dir/subiquity.autoinstall
+cp -v $grub_cfg  $iso_build_dir/boot/grub/grub.cfg
+cp -v $isolinux_txt_cfg  $iso_build_dir/isolinux/txt.cfg
+set +x
 
 if ! [ -z "$squashfs_update_script" ] ;  then
     echo "Configuring squashfs for iso"

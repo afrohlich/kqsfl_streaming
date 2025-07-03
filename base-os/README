@@ -13,6 +13,7 @@ autoinstall/  --> /subiquity.autoinstall
 - https://canonical-subiquity.readthedocs-hosted.com/en/latest/tutorial/creating-autoinstall-configuration.html
 - https://docs.cloud-init.io/en/latest/reference/datasources/nocloud.html#datasource-nocloud
 - https://github.com/canonical/autoinstall-desktop?tab=readme-ov-file
+- https://github.com/covertsh/ubuntu-autoinstall-generator/blob/main/ubuntu-autoinstall-generator.sh
 - https://help.ubuntu.com/community/Grub2/ISOBoot
 - https://help.ubuntu.com/community/LiveCDCustomization
 - https://www.pugetsystems.com/labs/hpc/ubuntu-22-04-server-autoinstall-iso/?srsltid=AfmBOorC8QzSr-Wtu8v2GzDJnmj5y3cwHTe3H8fKDjD8OMS_BbtAdcLy#Step_3_Edit_the_ISO_grubcfg_file

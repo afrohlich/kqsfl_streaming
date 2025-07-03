@@ -14,8 +14,20 @@
 
 set -euo pipefail
 
-echo "To Do"
 
+BASE_IMAGE_VERSION=20.04.6
+BASE_IMAGE_ARCH=amd64
+BASE_IMAGE_LINK=https://releases.ubuntu.com/$BASE_IMAGE_VERSION/ubuntu-$BASE_IMAGE_VERSION-live-server-BASE_IMAGE_ARCH.iso
+
+echo "Downloading image"
+echo "$BASE_IMAGE_LINK"
+
+wget $BASE_IMAGE_LINK
+
+
+
+
+exit
 
 # lvm snapshoting and LUKS encryption
 #    https://gist.github.com/superjamie/d56d8bc3c9261ad603194726e3fef50f
@@ -23,17 +35,17 @@ echo "To Do"
 #    https://wiki.archlinux.org/title/LVM#Snapshots
 
 
-ROOT_PARTITION_DEV=/dev/nvme0n1p4
-BOOT_PARTITION_DEV=/dev/nvme0n1p4
-ROOT_LV_SIZE=60G   # Leave room for snapshotting
+#ROOT_PARTITION_DEV=/dev/nvme0n1p4
+#BOOT_PARTITION_DEV=/dev/nvme0n1p4
+#ROOT_LV_SIZE=60G   # Leave room for snapshotting
 
-cryptsetup open $ROOT_PARTITION_DEV luks1
-pvcreate /dev/mapper/luks1
-vgcreate vg1 /dev/mapper/luks1
-lvcreate -L $ROOT_VOLUME_SIZE -n lv_root vg1
-lvcreate -L 1G -n lv_swap vg1
+#cryptsetup open $ROOT_PARTITION_DEV luks1
+#pvcreate /dev/mapper/luks1
+#vgcreate vg1 /dev/mapper/luks1
+#lvcreate -L $ROOT_VOLUME_SIZE -n lv_root vg1
+#lvcreate -L 1G -n lv_swap vg1
 
 
 # kiosk mode
-https://udsenterprise.com/wp-content/uploads/2023/05/turning_ubuntu_20_desktop_into_kiosk_mode.pdf
-https://thepcspy.com/read/building-a-kiosk-computer-ubuntu-1404-chrome/
+#https://udsenterprise.com/wp-content/uploads/2023/05/turning_ubuntu_20_desktop_into_kiosk_mode.pdf
+##https://thepcspy.com/read/building-a-kiosk-computer-ubuntu-1404-chrome/

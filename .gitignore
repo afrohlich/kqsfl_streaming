@@ -168,3 +168,9 @@ cython_debug/
 guacamole-docker/init/**
 guacamole-docker/data/**
 
+
+## large files
+
+**/*.iso
+
+**/secrets

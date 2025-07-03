@@ -1,4 +1,10 @@
 :80 {
+
+  forward_auth {args.0} authelia:9091 {
+    uri /api/authz/forward_auth
+    copy_headers Remote-User Remote-Groups Remote-Name Remote-Email
+  }
+
   redir /host/term /host/term/
   handle /host/term/* {
     reverse_proxy /host/term /host/term/
@@ -45,4 +51,11 @@
     root /srv
   }
 
+}
+
+(secure) {
+    forward_auth {args.0} authelia:9091 {
+      uri /api/verify
+      copy_headers Remote-User Remote-Groups Remote-Name Remote-Email
+    }
 }
