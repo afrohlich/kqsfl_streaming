@@ -1,0 +1,78 @@
+---
+- name: configure streambox server
+  hosts: all
+  become: yes
+  become_user: root
+  vars_files:
+    - "{{ lookup('env', 'HOME') }}/streambox_vars.yml"
+    - "{{ lookup('env', 'HOME') }}/streambox_credentials.yml"
+
+  tasks:
+    - name: configure base os
+      block:
+        - name: configure hostname
+          debug:
+            msg: configure hostname
+        - name: configure primary user
+          debug:
+            msg: "configure hostname"
+        - name: configure primary user
+          debug:
+            msg: "configure hostname"
+        - name: configure ssh
+          ansible.builtin.apt:
+            pkg:
+              - openssh-server
+        - name: configure desktop
+          ansible.builtin.apt
+            pkg:
+              - ubuntu-gnome-desktop
+              - ubuntu-gnome-default-settings
+    - name: configure networking
+      block:
+        - name: install networking packages
+          ansible.builtin.apt: 
+            pkg:
+              - hostapd
+              - firewalld
+              - isc-dhcp-server
+              - bridge-utils
+        - name: configure wireless
+          ansible.builtin.copy:
+            dest: /etc/hostapd/hostapd.conf
+            content: |
+              interface=wlo1
+              ssid=KQSFL
+              channel=1
+              wpa=2
+              wpa_passphrase=streambox
+              wpa_key_mgmt=WPA-PSK
+          
+        - name: configure dhcpd options
+          ansible.builtin.copy:
+            dest: /etc/dhcp/dhcpd.conf
+            content: |
+              ddns-update-style none;
+              option domain-name "hivemind.local";
+              option domain-name-servers 8.8.8.8, 8.8.4.4, 10.226.168.1;
+              default-lease-time 3600;
+              max-lease-time 86400;
+              authoritative;
+              log-facility local7;
+
+              subnet 10.226.168.0 netmask 255.255.255.0 {
+                  range 10.226.168.11 10.226.168.13;
+                  option routers 10.226.168.1;
+              }
+
+        - name: configure dhcpcd options
+          ansible.builtin.copy:
+            dest: /etc/default/isc-dhcp-server
+            content: |
+              INTERFACESv4="wlo1"
+              INTERFACESv6=""
+        
+    - name: configure obs
+      block: 
+        - name: 
+      

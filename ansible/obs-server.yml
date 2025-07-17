@@ -1,0 +1,11 @@
+---
+- name: configure streambox server
+  hosts: all
+  become: yes
+  become_user: root
+  vars_files:
+    - "{{ lookup('env', 'HOME') }}/streambox_vars.yml"
+    - "{{ lookup('env', 'HOME') }}/streambox_credentials.yml"
+
+  roles:
+    - obs-server

@@ -20,8 +20,8 @@ echo 'Dependencies installed'
 
 echo -e '\n\n\n'
 echo 'Installing pipx'
-python3 -m pip install pipx
-python3 -m pipx ensurepath
+sudo apt install pipx
+pipx ensurepath
 echo 'pipx installed'
 
 
@@ -29,6 +29,7 @@ echo -e '\n\n\n'
 echo 'Installing Ansible'
 pipx install --include-deps ansible
 pipx ensurepath
+. ~/.bashrc
 echo 'Ansible installed'
 
 echo -e '\n\n\n'

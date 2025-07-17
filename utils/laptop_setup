@@ -1,3 +1,0 @@
-#!/bin/bash
-
-gsettings get org.gnome.desktop.lockdown disable-lock-screen
