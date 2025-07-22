@@ -1,0 +1,11 @@
+Package: light-locker
+Pin: release *
+Pin-Priority: -1
+
+Package: xfce4-screensaver
+Pin: release *
+Pin-Priority: -1
+
+Package: gnome-screensaver
+Pin: release *
+Pin-Priority: -1

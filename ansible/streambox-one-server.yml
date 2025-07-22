@@ -10,25 +10,31 @@
   tasks:
     - name: configure base os
       block:
-        - name: configure hostname
-          debug:
-            msg: configure hostname
-        - name: configure primary user
-          debug:
-            msg: "configure hostname"
-        - name: configure primary user
-          debug:
-            msg: "configure hostname"
+        - name: set a hostname
+          ansible.builtin.hostname:
+            name: obs-server
+            use: systemd
+        - name: create primary user
+          ansible.builtin.user:
+            name: stream-admin
+            shell: /bin/bash
+            groups: video,renders
+            append: yes
         - name: configure ssh
           ansible.builtin.apt:
             pkg:
               - openssh-server
-        - name: configure desktop
-          ansible.builtin.apt
+    - name: configure desktop
+      block:
+        - name: install desktop environment essentials
+          ansible.builtin.apt:
             pkg:
-              - ubuntu-gnome-desktop
-              - ubuntu-gnome-default-settings
+              - xfce4
+              - xfce4-goodies
+              - lightdm
+
     - name: configure networking
+      when: false
       block:
         - name: install networking packages
           ansible.builtin.apt: 
@@ -72,7 +78,6 @@
               INTERFACESv4="wlo1"
               INTERFACESv6=""
         
-    - name: configure obs
-      block: 
-        - name: 
+  roles:
+    - obs-server
       

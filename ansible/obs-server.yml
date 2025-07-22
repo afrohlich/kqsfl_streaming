@@ -6,6 +6,21 @@
   vars_files:
     - "{{ lookup('env', 'HOME') }}/streambox_vars.yml"
     - "{{ lookup('env', 'HOME') }}/streambox_credentials.yml"
-
+  vars:
+    obsserver_user: stream-admin
+        
   roles:
-    - obs-server
+    - name: single-user-kiosk
+      vars:
+        primary_user: "{{obsserver_user}}"
+    - name: kasmvnc
+      vars:
+        kasmvnc_user: "{{obsserver_user}}"
+        kasmvnc_password: "{{obsserver_vnc_password}}"
+        kasmvnc_kiosk_mode: true
+    - name: obs-server
+
+  post_tasks:
+    - name: reboot
+      ansible.builtin.reboot:
+        reboot_timeout: 300

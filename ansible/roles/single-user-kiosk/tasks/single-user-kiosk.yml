@@ -1,0 +1,37 @@
+- name: configure base os
+  block:
+  - name: set a hostname
+    ansible.builtin.hostname:
+      name: obs-server
+      use: systemd
+
+  - name: create primary user
+    ansible.builtin.user:
+      name: "{{obsserver_user}}"
+      shell: /bin/bash
+      groups: video,render
+      append: yes
+
+  - name: configure ssh
+    ansible.builtin.apt:
+      pkg:
+        - openssh-server
+
+- name: configure desktop
+  block:
+  - name: disable screensavers packages and screen locks
+    copy:
+      src: no-screen-lock
+      dest: /etc/apt/preferences.d/no-screen-lock
+
+  - name: install desktop environment essentials
+    ansible.builtin.apt:
+      pkg:
+        - xfce4
+        - xfce4-goodies
+        - lightdm
+
+- name: auto-login
+  ansible.builtin.template:
+    src: autologin.conf.j2
+    dest: /etc/lightdm/lightdm.conf.d/12-autologin.conf

@@ -3,7 +3,7 @@ Description=kasmvnc
 After=network.target
 
 [Service]
-ExecStart=vncserver :2 -select-de gnome -fg
+ExecStart=vncserver :0 -fg
 KillMode=process
 IgnoreSIGPIPE=true
 Restart=always

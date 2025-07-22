@@ -1,0 +1,14 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=OBS Studio
+GenericName=Streaming/Recording Software
+Comment=Free and Open Source Streaming/Recording Software
+Exec=obs
+Icon=com.obsproject.Studio
+Terminal=false
+Categories=AudioVideo;Recorder;
+StartupWMClass=obs
+OnlyShowIn=XFCE;
+StartupNotify=false
+X-Xfce-Autostart-enabled=true

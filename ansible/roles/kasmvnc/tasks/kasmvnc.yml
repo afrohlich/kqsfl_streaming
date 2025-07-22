@@ -8,15 +8,16 @@
     deb: /tmp/kasmvnc.deb
 
 - name: kasmvnc add user to ssl-cert group
-  user: name={{ kasmvnc_user }}
-        groups=ssl-cert
-        append=yes
+  ansible.builtin.user:
+    name: "{{ kasmvnc_user }}"
+    groups: ssl-cert
+    append: yes
 
 - name: kasmvnc configure user password
   become: yes
   become_user: "{{kasmvnc_user}}"
   ansible.builtin.expect:
-    command: vncpasswd  -u stream-admin -w -r
+    command: "vncpasswd  -u {{kasmvnc_user}} -w -r"
     responses:
       'Password:': "{{kasmvnc_password}}"
       'Verify:': "{{kasmvnc_password}}"
