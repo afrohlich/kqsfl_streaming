@@ -4,7 +4,7 @@ logging:
   log_dest: logfile
   level: 100
 network:
-  protocol: https
+  protocol: http
   interface: 0.0.0.0
   websocket_port: auto
   use_ipv4: true
@@ -22,7 +22,6 @@ server:
     headers:
       - Cross-Origin-Embedder-Policy=require-corp
       - Cross-Origin-Opener-Policy=same-origin
-    httpd_directory: /usr/share/kasmvnc/www/kasm
   auto_shutdown:
     no_user_session_timeout: never
     active_user_session_timeout: never
