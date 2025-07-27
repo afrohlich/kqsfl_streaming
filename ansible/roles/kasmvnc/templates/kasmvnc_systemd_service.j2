@@ -3,6 +3,7 @@ Description=kasmvnc
 After=network.target
 
 [Service]
+User={{kasmvnc_user}}
 ExecStart=vncserver :1 -fg
 KillMode=process
 IgnoreSIGPIPE=true
