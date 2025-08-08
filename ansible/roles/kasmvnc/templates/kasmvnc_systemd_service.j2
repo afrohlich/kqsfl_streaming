@@ -1,15 +1,17 @@
 [Unit]
 Description=kasmvnc
-After=network.target
+After=network.target graphical.target
+Requires=graphical.target
 
 [Service]
 User={{kasmvnc_user}}
-ExecStart=vncserver :1 -fg
-KillMode=process
-IgnoreSIGPIPE=true
-Restart=always
-RestartSec=3
-Type=simple
+ExecStartPre=/usr/bin/vncserver -kill :1 > /dev/null 2>&1
+ExecStart=/usr/bin/vncserver :1
+# ExecStop unnecessary if not using "-fg" option and using "Type=forking"
+ExecStop=/usr/bin/vncserver -kill :1
+Restart=on-failure
+RestartSec=10
+Type=forking
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=graphical.target

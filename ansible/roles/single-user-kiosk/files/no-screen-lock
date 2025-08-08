@@ -9,3 +9,11 @@ Pin-Priority: -1
 Package: gnome-screensaver
 Pin: release *
 Pin-Priority: -1
+
+Package: xscreensaver
+Pin: release *
+Pin-Priority: -1
+
+Package: mate-screensaver
+Pin: release *
+Pin-Priority: -1

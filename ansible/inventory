@@ -1,0 +1,14 @@
+---
+boxes:
+  hosts:
+    streambox:
+      ansible_host: 10.10.99.213
+      ansible_user: kqsfl
+
+vm:
+  hosts:
+    # hosts are 
+    obs-server:
+      ansible_host: 192.168.122.101
+      ansible_user: stream-admin
+      ansible_ssh_common_args: -o ProxyCommand="ssh -p 22 -W %h:%p kqsfl@10.10.99.213"

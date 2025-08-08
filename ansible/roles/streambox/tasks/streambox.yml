@@ -1,11 +1,11 @@
-- name: streambox create essential users
+- name: streambox configure essential users
   tags: streambox create_users
   block:
     - name: streambox create admin user
       ansible.builtin.user:
         name: streambox-admin
-#        home: /home/streambox-admin/
-#        create_home: true
+        # home: /home/streambox-admin/
+        # create_home: true
         shell: /bin/bash
         groups: video,render
         append: yes
@@ -21,27 +21,7 @@
   ansible.builtin.file:
     path: /etc/apt/keyrings
     state: directory
-
-- name: streambox python extras
-  when: false
-  block:
-    - name: streambox install deadsnakes ppa
-      ansible.builtin.apt_repository:
-        repo: ppa:deadsnakes/ppa
-
-    - name: streambox python3.9
-      ansible.builtin.apt:
-        pkg:
-          - python3.9
-        update_cache: true
-
-    - name: streambox pipx python3.9
-      ansible.builtin.command: python3.9 -m pip install pipx
         
-- name: streambox configure desktop managers
-  whne: false
-  ansible.builtin.import_tasks: desktop_setup.yml
-
 - name: streambox install basic management tools
   tags: install_basics
   block:
@@ -51,18 +31,12 @@
           - vim
           - screen
           - tmux
-          - net-tools
-        update_cache: true
-
-    - name: streambox install system tools
-      ansible.builtin.apt:
-        pkg:
           - inotify-tools
           - dbus-x11
           - net-tools
         update_cache: true
 
-- name: streambox configure obs server vm
+- name: streambox configure hypervisor
   block:
     - name: streambox install vm management tools
       ansible.builtin.apt:
@@ -70,13 +44,68 @@
           - bridge-utils
           - cpu-checker
           - libvirt-clients
-          - libvirt-daemon
-          - qemu
+          - libvirt-daemon-system
           - qemu-kvm
+          - virt-manager
 
-    - name: streambox install obs server vm
-      community.libvirt
+    - name: create vm data directories
+      block:
+        - name: create vm configs directory
+          ansible.builtin.file:
+            path: /usr/local/share/vm-configs
+            state: directory
 
+        - name: create vm isos directory
+          ansible.builtin.file:
+            path: /usr/local/share/vm-configs/isos
+            state: directory
+        
+        - name: create vm templates directory
+          ansible.builtin.file:
+            path: /usr/local/share/vm-configs/templates
+            state: directory
+
+- name: streambox build and start obs vm
+  block:
+    - name: copy obs server configs
+      copy:
+        src: {{item}}
+        dest: /usr/local/share/vm-configs/templates/obs-server/
+      loop:
+        - "user-data"
+        - "vm.xml"
+
+    - name: streambox open cloud-init web server port
+      ansible.builtin.shell:
+        chdir: /usr/local/share/vm-configs/templates/obs-server/
+        cmd: python3 -m http.server 3003
+
+    - name: streambox serve cloud-init files over http
+      ansible.builtin.shell:
+        chdir: /usr/local/share/vm-configs/templates/obs-server/
+        cmd: python3 -m http.server 3003
+
+    - name: streambox add static ip for vm mac address
+      ansible.builtin.shell: |    
+        virsh net-update default modify ip-dhcp-host --xml '<host mac="52:54:00:05:05:52" name="obs" ip="192.168.122.101"/>'   --parent-index 0 
+
+    - name: streambox install obs server
+      ansible.builtin.shell: |
+        virt-install  --name=obs --description='OBS Server' \
+        --vcpus=2 --ram=4096 \
+        --disk path=/var/lib/libvirt/images/obs/obs.qcow2,size=32 \
+        --location '/mnt/data/isos/ubuntu-24.04.2-live-server-amd64.iso',initrd=casper/initrd,kernel=casper/vmlinuz \
+        --extra-args="ip=dhcp autoinstall ds=nocloud-net;s=http://192.168.122.1:3003/" \
+        --network default,mac=52:54:00:05:05:52 \
+        --destroy-on-exit --autostart
+
+    - name: streambox set static ip for vm
+      ansible.builtin.shell: |
+        virt-xml obs --edit --memorybacking source.type=memfd,access.mode=shared,
+
+    - name: streambox configure filesystem passthrough
+      ansible.builtin.shell: |
+        virt-xml obs --add-device --filesystem accessmode=passthrough,driver.type=virtiofs,driver.queue=1024,source.dir=/var/opt/obs-server/,target.dir=obs_data,type=mount
 
 - name: install docker
   tags: install_docker
@@ -214,33 +243,7 @@
         XDG_RUNTIME_DIR: /run/user/{{stream_admin_uid.stdout}}
       when: setup_rclone_config.changed
 
-- name: streambox obs studio setup
-  # https://obsproject.com/kb/linux-installation
-  # https://github.com/pschmitt/obs-cli
-  block:
-    - name: obs studio add apt repo
-      ansible.builtin.apt_repository:
-        repo: ppa:obsproject/obs-studio
-
-    - name: obs studio install
-      ansible.builtin.apt:
-        update_cache: yes
-        name: "obs-studio={{streambox_obs_studio_version}}"
-        # versions: https://launchpad.net/~obsproject/+archive/ubuntu/obs-studio
-
-    - name: obs studio cli install
-      become_user: stream-admin
-      community.general.pipx:
-        name: obs-cli
-        include_injected: false
-        state: install
-        python: 3.9
-
-- name: streambox streamdeck setup
-  ansible.builtin.import_role:
-    name: streamdeck
-
-- name: streambox set up remote desktop software
+- name: streambox set up remote access software
   block:
     - name: x11vnc setup
       tags: vnc_x11vnc_install
@@ -285,8 +288,3 @@
         build: always
       environment:
         KASM_VNC_PASSWORD: "{{streambox_vnc_password}}"
-
-
-- name: reboot
-  ansible.builtin.reboot:
-  when: false

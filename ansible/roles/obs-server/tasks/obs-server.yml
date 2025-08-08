@@ -12,6 +12,11 @@
         name: "obs-studio={{obsserver_obs_studio_version}}"
         # versions: https://launchpad.net/~obsproject/+archive/ubuntu/obs-studio
 
+    - name: obs studio create autostart directory
+      ansible.builtin.file:
+        state: directory
+        dest: "/home/{{obsserver_user}}.config/autostart/"
+
     - name: obs studio autostart
       ansible.builtin.copy:
         src: obs.desktop
@@ -31,3 +36,20 @@
 #    - name: start obs on boot
 #      block:
 #        - name: 
+
+    - name: obs studio shared data directory
+      block:
+        - name: obs studio create data directory mount point
+          ansible.builtin.file:
+            path: /var/opt/obs-server/
+            state: directory
+
+        - name: obs studio mount shared data directory
+          ansible.posix.mount:
+            path: /var/opt/obs-server/
+            src: obs_data
+            fstype: virtiofs
+            state: present
+
+    - name: obs enable websocket
+      

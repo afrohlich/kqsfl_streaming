@@ -24,6 +24,17 @@
       src: no-screen-lock
       dest: /etc/apt/preferences.d/no-screen-lock
 
+  - name: disable screen blank settings
+    ansible.builtin.blockinfile:
+      path: /home/stream-admin/.profile 
+      prepend_newline: true
+      marker: "# Disable Screen Blanking and Display Power Management"
+      block: |
+        xset -display :0 s off && xset -display :0 s noblank
+        xset -display :0 -dpms
+        xset -display :0 q
+
+
   - name: install desktop environment essentials
     ansible.builtin.apt:
       pkg:
