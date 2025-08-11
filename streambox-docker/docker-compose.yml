@@ -1,0 +1,99 @@
+services:
+  web-server:
+    image: caddy:latest
+    container_name: web-server
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./web-server/conf/:/etc/caddy/
+      - ./conf:/etc/caddy
+      - ./site:/srv
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - streaming_network
+
+  restreamer:
+    image: datarhei/restreamer:latest
+    container_name: restreamer
+    restart: unless-stopped
+    ports:
+      - "8080:8080"     # Restreamer web UI
+      - "8181:8181"     # Restreamer API
+      - "1935:1935"     # RTMP input/output (live streaming)
+      - "1936:1936"     # RTMP stats/management or alternative RTMP port
+      - "6000:6000/udp" # RTP/UDP streaming (for media transport)
+    volumes:
+      - ./restreamer/config:/core/config
+      - ./restreamer/data:/core/data
+    environment:
+      - RS_USERNAME=admin
+      - RS_PASSWORD=changeme
+      - RS_TOKEN=changeme
+    networks:
+      - streaming_network
+
+  dns-server:
+    image: jpillora/dnsmasq:latest
+    container_name: dns-server
+    restart: unless-stopped
+    ports:
+      - "53:53/udp"
+      - "53:53/tcp"
+      - "5380:8080"
+    volumes:
+      - ./dnsmasq/dnsmasq.conf:/etc/dnsmasq.conf
+    cap_add:
+      - NET_ADMIN
+    networks:
+      - streaming_network
+
+  olivetin:
+    # https://docs.olivetin.app/install-compose.html
+    image: jamesread/olivetin
+
+    container_name: olivetin
+    volumes:
+      - ./olivetin/config:/config
+    expose:
+      - 1337
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=changeme
+      - GF_INSTALL_PLUGINS=
+    networks:
+      - streaming_network
+
+  loki:
+    image: grafana/loki:latest
+    container_name: loki
+    restart: unless-stopped
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./loki/config.yaml:/etc/loki/config.yaml
+      - loki_data:/loki
+    command: -config.file=/etc/loki/config.yaml
+    networks:
+      - streaming_network
+
+networks:
+  streaming_network:
+    driver: bridge
+
+volumes:
+  grafana_data:
+  loki_data:
