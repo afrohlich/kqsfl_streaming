@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OBS-Server Portal</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .container {
+            text-align: center;
+        }
+        .btn {
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Welcome to Streambox</h1>
+        <a href="/restreamer" class="btn">restreamer</a> 
+        <a href="/host/vnc" class="btn">Host Server Display</a> 
+        <a href="/host/term" class="btn">Host Server Terminal</a> 
+        <a href="/obs/vnc" class="btn">OBS Container Display</a>
+        <a href="/obs/shortcuts" class="btn">Stream Shortcuts</a> 
+        <a href="/metrics" class="btn">Metrics Dashboard</a>
+    </div>
+
+</body>
+</html>
