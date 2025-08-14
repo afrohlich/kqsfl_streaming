@@ -75,11 +75,6 @@
         - "user-data"
         - "vm.xml"
 
-    - name: streambox open cloud-init web server port
-      ansible.builtin.shell:
-        chdir: /usr/local/share/vm-configs/templates/obs-server/
-        cmd: python3 -m http.server 3003
-
     - name: streambox serve cloud-init files over http
       ansible.builtin.shell:
         chdir: /usr/local/share/vm-configs/templates/obs-server/
