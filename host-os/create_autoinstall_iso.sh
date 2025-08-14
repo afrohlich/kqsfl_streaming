@@ -1,35 +1,43 @@
 
+#!/bin/bash
+
+# Configuration variables
+ISO_EXTRACT_DIR="/tmp/iso_out"
+SOURCE_ISO="ubuntu-24.04.2-live-server-amd64.iso"
+OUTPUT_ISO="/tmp/ubuntu-autoinstall.iso"
+BUILD_SCRIPT="/tmp/build_iso.sh"
+
 # Download ISO
 echo "Download ISO"
 
 # Create ISO extract directory
-mkdir -p /tmp/iso_out
+mkdir -p "$ISO_EXTRACT_DIR"
 
 # Unpack ISO
-xorriso -osirrox on -indev ubuntu-24.04.2-live-server-amd64.iso --extract_boot_images iso_out/bootpart -extract / iso_out
+xorriso -osirrox on -indev "/$SOURCE_ISO" --extract_boot_images "$ISO_EXTRACT_DIR/bootpart" -extract / "$ISO_EXTRACT_DIR"
 
 # Create cloud-init directory
-mkdir -p /tmp/iso_out/nocloud
+mkdir -p "$ISO_EXTRACT_DIR/nocloud"
 
 # Copy user-data
-cp user-data /tmp/iso_out/nocloud/user-data
-touch /tmp/iso_out/nocloud/meta-data
+cp user-data "$ISO_EXTRACT_DIR/nocloud/user-data"
+touch "$ISO_EXTRACT_DIR/nocloud/meta-data"
 
 # Edit grub
-cp grub.cfg /tmp/iso_out/boot/grub/grub.cfg
+cp grub.cfg "$ISO_EXTRACT_DIR/boot/grub/grub.cfg"
 
 # Generate ISO build command
-cat << EOF > /tmp/build_iso.sh
+cat << EOF > "$BUILD_SCRIPT"
 #!/bin/bash
 
 xorriso -as mkisofs \\
-$(xorriso -indev ubuntu-24.04.2-live-server-amd64.iso -report_el_torito as_mkisofs 2>/dev/null | sed -n '/^\-/p' | sed 's/$/ \\/')
--o /tmp/ubuntu-autoinstall.iso
-/tmp/iso_out
+$(xorriso -indev "$SOURCE_ISO" -report_el_torito as_mkisofs 2>/dev/null | sed -n '/^\-/p' | sed 's/$/ \\/')
+-o "$OUTPUT_ISO"
+$ISO_EXTRACT_DIR
 EOF
 
 # Build the ISO
-chmod +x /tmp/build_iso.sh
-bash /tmp/build_iso.sh
-echo "autoinstall iso has been created at /tmp/ubuntu-autoinstall.iso"
+chmod +x "$BUILD_SCRIPT"
+bash "$BUILD_SCRIPT"
+echo "autoinstall iso has been created at $OUTPUT_ISO"
 echo "Create a bootable USB with this ISO to configure the host machine"
