@@ -30,7 +30,6 @@ services:
     environment:
       - RS_USERNAME=admin
       - RS_PASSWORD=changeme
-      - RS_TOKEN=changeme
     networks:
       - streaming_network
 
