@@ -168,3 +168,25 @@
         build: always
       environment:
         KASM_VNC_PASSWORD: "{{streambox_vnc_password}}"
+
+- name: streambox remote access
+  block:
+    - name: steambox remote tty setup
+      # https://github.com/tsl0922/ttyd
+      block:
+        - name: ttyd install
+          ansible.builtin.snap:
+            name: ttyd
+            classic: true
+
+        - name: ttyd systemd service install
+          ansible.builtin.template:
+            src: ttyd_systemd_root_service.j2
+            dest: /etc/systemd/system/ttyd.service
+
+        - name: ttyd systemd service enable
+          ansible.builtin.systemd:
+            name: ttyd.service
+            enabled: true
+            daemon_reload: true
+            state: restarted
