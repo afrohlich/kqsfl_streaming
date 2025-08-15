@@ -1,12 +1,17 @@
 #cloud-config
+#server target - Ubuntu Server 24.04.2
 autoinstall:
   version: 1
+  interactive-sections:
+    - network
   identity:
     hostname: streambox
+    #password=streambox
     password: "$6$dTGm9BYPAiTfq0HQ$Qr//9vsG4CTem/ErYyyWWVS7BPs7xDAjFwzlI.3i8XXxJmOogju2GQWfIusbJyr1bi1a5apqr7hP0LmDa56tw/"
     username: stream-admin
   ssh:
     install-server: yes
     allow-pw: yes
-  late-commands:
-    - touch /my-cloud-init-done
+  packages:
+    - network-manager
+    - wireless-tools
