@@ -59,4 +59,14 @@ echo "cleaning up temp dir"
 chmod --recursive +w $ISO_EXTRACT_DIR
 rm -rf $ISO_EXTRACT_DIR
 
-echo "Create a bootable USB with this ISO to configure the host machine"
+cat << EOF
+
+Create a bootable USB with this ISO to configure the host machine
+Use 'lsblk' to look up the name of the block device for your USB. (example: /dev/sdX)
+You can use the 'dd' command to write the iso to a usb.
+The write process may take a couple of minutes.
+Incorrect usage of 'dd' can corrupt your machine.
+
+sudo dd  if=$OUTPUT_ISO   of=__REPLACE_WITH_NAME_OF_DEVICE_BLOCK__ bs=4M && sync
+
+EOF
