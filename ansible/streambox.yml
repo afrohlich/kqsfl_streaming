@@ -19,4 +19,3 @@
     - "{{ lookup('env', 'HOME') }}/streambox_credentials.yml"
   roles:
     - obs-server
-  delegate_to: streambox

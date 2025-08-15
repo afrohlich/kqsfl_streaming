@@ -15,12 +15,12 @@
     - name: obs studio create autostart directory
       ansible.builtin.file:
         state: directory
-        dest: "/home/{{obsserver_user}}.config/autostart/"
+        dest: "/home/{{obsserver_user}}/.config/autostart/"
 
     - name: obs studio autostart
       ansible.builtin.copy:
         src: obs.desktop
-        dest: "/home/{{obsserver_user}}.config/autostart/obs.desktop"
+        dest: "/home/{{obsserver_user}}/.config/autostart/obs.desktop"
 
     - name: obs studio cli install
       when: false
@@ -49,7 +49,4 @@
             path: /var/opt/obs-server/
             src: obs_data
             fstype: virtiofs
-            state: present
-
-    - name: obs enable websocket
-      
+            state: present      

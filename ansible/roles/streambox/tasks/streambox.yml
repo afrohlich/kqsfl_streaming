@@ -69,7 +69,7 @@
   block:
     - name: copy obs server configs
       copy:
-        src: {{item}}
+        src: "{{item}}"
         dest: /usr/local/share/vm-configs/templates/obs-server/
       loop:
         - "user-data"
