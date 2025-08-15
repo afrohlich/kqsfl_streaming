@@ -6,8 +6,8 @@ autoinstall:
     - network
   identity:
     hostname: streambox
-    #password=streambox
-    password: "$6$dTGm9BYPAiTfq0HQ$Qr//9vsG4CTem/ErYyyWWVS7BPs7xDAjFwzlI.3i8XXxJmOogju2GQWfIusbJyr1bi1a5apqr7hP0LmDa56tw/"
+    #password=streambox    |    generated with `openssl passwd -6 streambox`
+    password: "$6$JSHDhRNbhHqVg4y2$OxbsRMm2OFtsJNt39iLIGj/cqj/94uw3x4b/zJjKoMD/.ADvCLE6UxmuKB8q/K/1upgd4RfawHcaYlRI0FcVr1"
     username: stream-admin
   ssh:
     install-server: yes
