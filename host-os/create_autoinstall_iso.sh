@@ -1,6 +1,8 @@
 
 #!/bin/bash
 
+set -xeuo pipefail
+
 # Configuration variables
 ISO_EXTRACT_DIR="/tmp/iso_out"
 SOURCE_ISO="ubuntu-24.04.2-live-server-amd64.iso"
