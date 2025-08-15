@@ -26,8 +26,8 @@ mkdir -p "$ISO_EXTRACT_DIR/nocloud"
 
 # Copy user-data
 chmod +w $ISO_EXTRACT_DIR/nocloud
-cp "$SCRIPT_DIR/user-data" "$ISO_EXTRACT_DIR/nocloud/user-data"
-touch "$ISO_EXTRACT_DIR/nocloud/meta-data"
+cat "$SCRIPT_DIR/user-data" > "$ISO_EXTRACT_DIR/nocloud/user-data"
+cat "$SCRIPT_DIR/meta-data" > "$ISO_EXTRACT_DIR/nocloud/meta-data"
 chmod -w $ISO_EXTRACT_DIR/nocloud
 
 # Edit grub
@@ -67,6 +67,7 @@ You can use the 'dd' command to write the iso to a usb.
 The write process may take a couple of minutes.
 Incorrect usage of 'dd' can corrupt your machine.
 
-sudo dd  if=$OUTPUT_ISO   of=__REPLACE_WITH_NAME_OF_DEVICE_BLOCK__ bs=4M && sync
+For example, use the below command and replace /dev/sdX_Replace with the correct device
+sudo dd  if=$OUTPUT_ISO   of=/dev/sdX_Replace bs=4M && sync
 
 EOF

@@ -2,8 +2,49 @@
 #server target - Ubuntu Server 24.04.2
 autoinstall:
   version: 1
-  interactive-sections:
-    - network
+  early-commands:
+    - |
+      cat > /tmp/setup-wifi.sh << 'EOF'
+      #!/bin/bash
+
+      set -euo pipefail
+
+      exec < /dev/console > /dev/console 2>&1
+
+      echo "Configure Wifi? (yes/no): "
+      read configure_wifi
+
+      if [[ "$configure_wifi" != "yes" ]] ; then exit ; fi
+
+      echo "Available network adapters:"
+      ip link show | sed -n '/^[0-9]*:/p'
+
+      echo "Enter adapter to use: "
+      read wifi_adapter
+      echo "Enter SSID: "
+      read ssid
+      echo "Enter Password: "
+      read -s password
+      echo ""
+
+      cat > /etc/netplan/99-wifi.yaml << NETPLAN
+      network:
+        version: 2
+        wifis:
+          $wifi_adapter:
+            access-points:
+              "$ssid":
+                password: "$password"
+            dhcp4: true
+      NETPLAN
+
+      cat /etc/netplan/99-wifi.yaml
+
+      chmod 600 /etc/netplan/99-wifi.yaml
+      netplan apply
+      EOF
+    - chmod +x /tmp/setup-wifi.sh
+    - /tmp/setup-wifi.sh
   identity:
     hostname: streambox
     #password=streambox    |    generated with `openssl passwd -6 streambox`
