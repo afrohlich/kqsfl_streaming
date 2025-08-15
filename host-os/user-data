@@ -4,47 +4,20 @@ autoinstall:
   version: 1
   early-commands:
     - |
-      cat > /tmp/setup-wifi.sh << 'EOF'
-      #!/bin/bash
-
-      set -euo pipefail
-
-      exec < /dev/console > /dev/console 2>&1
-
-      echo "Configure Wifi? (yes/no): "
-      read configure_wifi
-
-      if [[ "$configure_wifi" != "yes" ]] ; then exit ; fi
-
-      echo "Available network adapters:"
-      ip link show | sed -n '/^[0-9]*:/p'
-
-      echo "Enter adapter to use: "
-      read wifi_adapter
-      echo "Enter SSID: "
-      read ssid
-      echo "Enter Password: "
-      read -s password
-      echo ""
-
-      cat > /etc/netplan/99-wifi.yaml << NETPLAN
+      cat > /etc/netplan/99-wifi.yaml.template << NETPLAN
       network:
         version: 2
         wifis:
-          $wifi_adapter:
+          wlo1:
             access-points:
-              "$ssid":
-                password: "$password"
+              "SSID_HERE":
+                password: "PASSWORD"
             dhcp4: true
       NETPLAN
 
       cat /etc/netplan/99-wifi.yaml
-
       chmod 600 /etc/netplan/99-wifi.yaml
-      netplan apply
       EOF
-    - chmod +x /tmp/setup-wifi.sh
-    - /tmp/setup-wifi.sh
   identity:
     hostname: streambox
     #password=streambox    |    generated with `openssl passwd -6 streambox`
@@ -53,6 +26,14 @@ autoinstall:
   ssh:
     install-server: yes
     allow-pw: yes
-  packages:
-    - network-manager
-    - wireless-tools
+  late-commands:
+    - |
+      cat << NEXT_STEPS
+      This autoinstall does not assume network connectivity.
+      The expectation is that you will configure the network and install all packages separately.
+
+      If Wi-fi is required.
+      Modify /etc/netplan/99-wifi.yaml.template
+      Change the filename to /etc/netplan/99-wifi.yaml
+      Run netplan apply
+      NEXT_STEPS
