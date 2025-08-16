@@ -2,9 +2,22 @@
 #server target - Ubuntu Server 24.04.2
 autoinstall:
   version: 1
-  early-commands:
+  identity:
+    hostname: streambox
+    #password=streambox    |    generated with `openssl passwd -6 streambox`
+    password: "$6$JSHDhRNbhHqVg4y2$OxbsRMm2OFtsJNt39iLIGj/cqj/94uw3x4b/zJjKoMD/.ADvCLE6UxmuKB8q/K/1upgd4RfawHcaYlRI0FcVr1"
+    username: stream-admin
+  ssh:
+    install-server: yes
+    allow-pw: yes
+  packages:
+    # This list assumes internet access via ethernet during the install
+    - wpasupplicant
+    - network-manager
+    - wireless-tools
+  late-commands:
     - |
-      cat > /etc/netplan/99-wifi.yaml.template << NETPLAN
+      cat > /target/etc/netplan/99-wifi.yaml.template << NETPLAN
       network:
         version: 2
         wifis:
@@ -14,19 +27,8 @@ autoinstall:
                 password: "PASSWORD"
             dhcp4: true
       NETPLAN
-
-      cat /etc/netplan/99-wifi.yaml
-      chmod 600 /etc/netplan/99-wifi.yaml
-      EOF
-  identity:
-    hostname: streambox
-    #password=streambox    |    generated with `openssl passwd -6 streambox`
-    password: "$6$JSHDhRNbhHqVg4y2$OxbsRMm2OFtsJNt39iLIGj/cqj/94uw3x4b/zJjKoMD/.ADvCLE6UxmuKB8q/K/1upgd4RfawHcaYlRI0FcVr1"
-    username: stream-admin
-  ssh:
-    install-server: yes
-    allow-pw: yes
-  late-commands:
+      
+      chmod 600 /etc/netplan/99-wifi.yaml.template
     - |
       cat << NEXT_STEPS
       This autoinstall does not assume network connectivity.
