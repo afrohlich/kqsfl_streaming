@@ -3,12 +3,16 @@
   hosts: streambox
   become: yes
   become_user: root
+  vars:
+    streambox_user: stream-admin
   vars_files:
     - "{{ lookup('env', 'HOME') }}/streambox_vars.yml"
     - "{{ lookup('env', 'HOME') }}/streambox_credentials.yml"
-
   roles:
-    - streambox
+    - name: single-user-kiosk
+      vars:
+        primary_user: "{{streambox_user}}"
+    - name: streambox
 
 - name: configure obs server
   hosts: obs-server
@@ -17,5 +21,27 @@
   vars_files:
     - "{{ lookup('env', 'HOME') }}/streambox_vars.yml"
     - "{{ lookup('env', 'HOME') }}/streambox_credentials.yml"
+  vars:
+    obsserver_user: stream-admin
+
+  pre_tasks:
+    - name: wait for vms
+      ansible.builtin.wait_for_connection:
+        delay: 60
+        timeout: 600
+
   roles:
-    - obs-server
+    - name: single-user-kiosk
+      vars:
+        primary_user: "{{obsserver_user}}"
+    - name: kasmvnc
+      vars:
+        kasmvnc_user: "{{obsserver_user}}"
+        kasmvnc_password: "{{obsserver_vnc_password}}"
+        kasmvnc_kiosk_mode: true
+    - name: obs-server
+
+  post_tasks:
+    - name: reboot
+      ansible.builtin.reboot:
+        reboot_timeout: 300
