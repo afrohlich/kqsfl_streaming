@@ -1,0 +1,53 @@
+# OliveTin Configuration
+# Web interface for running predefined shell commands
+
+listenAddressWebUI: 0.0.0.0:1337
+logLevel: "INFO"
+
+# Define actions/buttons that will appear in the UI
+actions:
+  - title: Restart Restreamer
+    shell: docker restart restreamer
+    icon: restart
+    timeout: 30
+
+  - title: Check System Status
+    shell: |
+      echo "=== System Status ==="
+      echo "Uptime: $(uptime)"
+      echo ""
+      echo "=== Docker Containers ==="
+      docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+    icon: activity
+    timeout: 10
+
+  - title: View Streaming Logs
+    shell: docker logs --tail 50 restreamer
+    icon: file-text
+    timeout: 10
+
+  - title: Clear DNS Cache
+    shell: docker exec dns-server kill -USR1 1
+    icon: refresh-cw
+    timeout: 5
+
+  - title: Test RTMP Stream
+    shell: |
+      echo "Testing RTMP connectivity on port 1935..."
+      nc -zv localhost 1935 2>&1
+    icon: play
+    timeout: 10
+
+  - title: Backup Configurations
+    shell: |
+      BACKUP_DIR="/backups/$(date +%Y%m%d_%H%M%S)"
+      mkdir -p "$BACKUP_DIR"
+      cp -r /config/* "$BACKUP_DIR/"
+      echo "Backup created at: $BACKUP_DIR"
+    icon: save
+    timeout: 30
+
+# Access control (optional)
+# users:
+#   - username: admin
+#     password: changeme
