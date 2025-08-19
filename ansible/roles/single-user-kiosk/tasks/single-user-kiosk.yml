@@ -7,7 +7,7 @@
 
   - name: create primary user
     ansible.builtin.user:
-      name: "{{obsserver_user}}"
+      name: "{{primary_user}}"
       shell: /bin/bash
       groups: video,render
       append: yes
@@ -34,8 +34,7 @@
         xset -display :0 -dpms
         xset -display :0 q
 
-
-  - name: install desktop environment essentials
+  - name: install desktop environment
     ansible.builtin.apt:
       pkg:
         - xfce4
