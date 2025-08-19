@@ -3,22 +3,11 @@
 # https://wiki.archlinux.org/title/I3
 # https://unix.stackexchange.com/questions/86221/how-can-i-lock-my-screen-in-gnome-3-without-gdm
 
-- name: desktop preseed dpkg questions
-  ansible.builtin.debconf:
-    name: "{{item.name}}"
-    question: "{{item.question}}"
-    value: "{{item.value}}"
-    vtype: "{{item.vtype}}"
-  loop:
-    - name: lightdm
-      question: shared/default-x-display-manager
-      value: lightdm
-      vtype:  select
-  no_log: false
-
 - name: desktop install packages
   ansible.builtin.apt:
     pkg:
+      - xorg
+      - xfce4
       - lightdm
       - light-locker
       - i3
@@ -30,13 +19,6 @@
     responses:
         "Default display manager:":
             - "lightdm"
-
-- name: disable wayland
-  ansible.builtin.lineinfile:
-    path: /etc/gdm3/custom.conf
-    regexp: '^WaylandEnable='
-    insertafter: '^#WaylandEnable='
-    line: 'WaylandEnable=false'
 
 - name: disable screen lock an lid close
   # https://askubuntu.com/questions/1014965/automatic-suspend-computer-will-suspend-very-soon-because-of-inactivity-ho
