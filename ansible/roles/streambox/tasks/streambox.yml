@@ -47,49 +47,65 @@
           - libvirt-daemon-system
           - qemu-kvm
           - virt-manager
+          - cloud-image-utils
 
     - name: create vm data directories
-      block:
-        - name: create vm configs directory
-          ansible.builtin.file:
-            path: /usr/local/share/vm-configs
-            state: directory
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+      loop:
+        - /usr/local/share/vm-configs
+        - /usr/local/share/vm-configs/isos
+        - /usr/local/share/vm-configs/templates
+        - /usr/local/share/vm-configs/templates/obs-server
+        - /var/lib/libvirt/images/obs
+        - /var/opt/obs-server/
 
-        - name: create vm isos directory
-          ansible.builtin.file:
-            path: /usr/local/share/vm-configs/isos
-            state: directory
-        
-        - name: create vm templates directory
-          ansible.builtin.file:
-            path: /usr/local/share/vm-configs/templates
-            state: directory
 
 - name: streambox build and start obs vm
   block:
     - name: copy obs server configs
-      copy:
-        src: "{{item}}"
-        dest: /usr/local/share/vm-configs/templates/obs-server/
+      template:
+        src: "{{item}}.j2"
+        dest: /usr/local/share/vm-configs/templates/obs-server/{{item}}
       loop:
-        - "user-data"
-        - "vm.xml"
+        - user-data
+        - meta-data
+
+    - name: download base os for obs-server vm
+      get_url:
+        url: https://releases.ubuntu.com/noble/ubuntu-24.04.3-live-server-amd64.iso
+        dest: /usr/local/share/vm-configs/isos/
 
     - name: streambox serve cloud-init files over http
       ansible.builtin.shell:
         chdir: /usr/local/share/vm-configs/templates/obs-server/
-        cmd: python3 -m http.server 3003
+        cmd: |
+          nohup python3 -m http.server 3003 >/dev/null 2>&1 &
+          echo $!
+      args:
+        chdir: "{{ http_root }}"
+      register: http_pid
+      changed_when: http_pid.stdout | length > 0
 
     - name: streambox add static ip for vm mac address
-      ansible.builtin.shell: |    
-        virsh net-update default modify ip-dhcp-host --xml '<host mac="52:54:00:05:05:52" name="obs" ip="192.168.122.101"/>'   --parent-index 0 
+      ansible.builtin.shell: |
+        mac='52:54:00:05:05:52'
+        host_defined=$(virsh net-dumpxml default --xpath "/network/ip/dhcp/host[@mac='$mac']" | grep host | wc -l)
+        if [ $host_defined -eq 1 ] ; then
+          virsh net-update default modify ip-dhcp-host --xml "<host mac='$mac' name='obs' ip='192.168.122.101'/>"   --parent-index 0
+        elif [ $host_defined -eq 0 ] ; then
+          virsh net-update default add ip-dhcp-host --xml "<host mac='$mac' name='obs' ip='192.168.122.101'/>"   --parent-index 0
+        else
+          echo "host defined $host_defined times" && exit 1
+        fi 
 
     - name: streambox install obs server
       ansible.builtin.shell: |
         virt-install  --name=obs --description='OBS Server' \
         --vcpus=2 --ram=4096 \
         --disk path=/var/lib/libvirt/images/obs/obs.qcow2,size=32 \
-        --location '/mnt/data/isos/ubuntu-24.04.2-live-server-amd64.iso',initrd=casper/initrd,kernel=casper/vmlinuz \
+        --location '/usr/local/share/vm-configs/isos/ubuntu-24.04.3-live-server-amd64.iso',initrd=casper/initrd,kernel=casper/vmlinuz \
         --extra-args="ip=dhcp autoinstall ds=nocloud-net;s=http://192.168.122.1:3003/" \
         --network default,mac=52:54:00:05:05:52 \
         --destroy-on-exit --autostart
@@ -101,6 +117,12 @@
     - name: streambox configure filesystem passthrough
       ansible.builtin.shell: |
         virt-xml obs --add-device --filesystem accessmode=passthrough,driver.type=virtiofs,driver.queue=1024,source.dir=/var/opt/obs-server/,target.dir=obs_data,type=mount
+
+  always:
+    - name: kill cloud data http.server
+      ansible.builtin.shell: "kill {{ http_pid.stdout | trim }}"
+      when: http_pid is defined and (http_pid.stdout | default('')) | length > 0
+      ignore_errors: true
 
 - name: install docker
   tags: install_docker
@@ -114,7 +136,6 @@
           - software-properties-common
           - python3-setuptools
           - python3-pip
-          - python3.8-venv
         state: latest
         update_cache: true
 
@@ -139,10 +160,6 @@
         state: latest
         update_cache: true
 
-    - name: streambox install docker module for python
-      pip:
-        name: docker
-
     - name: streambox docker allow admin user
       ansible.builtin.user:
         name: stream-admin
@@ -156,6 +173,10 @@
       ansible.builtin.copy:
         src: streambox-docker/
         dest: /etc/docker/compose/streambox
+
+    - name: streambox build and download docker images
+      community.docker.docker_compose_v2_pull:
+        project_src: /etc/docker/compose/streambox/
 
     - name: start streambox docker cluster
       community.docker.docker_compose_v2:

@@ -29,13 +29,3 @@ autoinstall:
       NETPLAN
       
       chmod 600 /etc/netplan/99-wifi.yaml.template
-    - |
-      cat << NEXT_STEPS
-      This autoinstall does not assume network connectivity.
-      The expectation is that you will configure the network and install all packages separately.
-
-      If Wi-fi is required.
-      Modify /etc/netplan/99-wifi.yaml.template
-      Change the filename to /etc/netplan/99-wifi.yaml
-      Run netplan apply
-      NEXT_STEPS
