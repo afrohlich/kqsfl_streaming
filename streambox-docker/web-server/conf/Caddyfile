@@ -4,11 +4,11 @@
 }
 
 https://streambox.lan {
-   log
+  log
 
   redir /restreamer /restreamer/
   handle /restreamer/* {
-    reverse_proxy http://host.docker.internal:8080
+    reverse_proxy http://restreamer:8080
     uri strip_prefix /restreamer/
   }
 
@@ -24,6 +24,9 @@ https://streambox.lan {
     redir /obs/vnc/ /obs/vnc/vnc.html
 
     handle_path /obs/vnc/* {
+
+      uri query replace path '/obs/vnc/websockify'
+
       reverse_proxy https://192.168.122.101:8444 {
         transport http {
           tls_insecure_skip_verify
@@ -33,6 +36,15 @@ https://streambox.lan {
       # KasmVNC doesn't protect against directory traveral
       @dir_matcher path_regexp \/$
       respond @dir_matcher 403
+    }
+  }
+
+  redir /metrics /metrics/
+  handle /metrics/* {
+    reverse_proxy https://grafana:3000 {
+      transport http {
+        tls_insecure_skip_verify
+      }
     }
   }
 
