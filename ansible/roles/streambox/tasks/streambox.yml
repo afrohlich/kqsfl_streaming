@@ -3,9 +3,9 @@
   block:
     - name: streambox create admin user
       ansible.builtin.user:
-        name: streambox-admin
-        # home: /home/streambox-admin/
-        # create_home: true
+        name: stream-admin
+        home: /home/stream-admin/
+        create_home: true
         shell: /bin/bash
         groups: video,render
         append: yes
@@ -13,7 +13,7 @@
     - name: streambox create admin user systemd directory
       # https://wiki.archlinux.org/title/Systemd/User
       ansible.builtin.file:
-        path: "/home/streambox-admin/.config/systemd/user/"
+        path: "/home/stream-admin/.config/systemd/user/"
         state: directory
         owner: stream-admin
 
@@ -48,6 +48,7 @@
           - qemu-kvm
           - virt-manager
           - cloud-image-utils
+          - virtiofsd
 
     - name: create vm data directories
       ansible.builtin.file:
@@ -72,10 +73,19 @@
         - user-data
         - meta-data
 
+    - name: streambox get ubuntu checksumfile
+      get_url:
+        url: https://releases.ubuntu.com/24.04.3/SHA256SUMS
+        dest: /usr/local/share/vm-configs/isos/ubuntu-iso-checksums
+
     - name: download base os for obs-server vm
       get_url:
         url: https://releases.ubuntu.com/noble/ubuntu-24.04.3-live-server-amd64.iso
-        dest: /usr/local/share/vm-configs/isos/
+        dest: /usr/local/share/vm-configs/isos/ubuntu.24.04.iso
+        checksum: 'sha256sum:{{ ubuntu_checksums[0].split()[0] }}'
+      vars:
+        ubuntu_checksums: '{{ lookup("file", "/usr/local/share/vm-configs/isos/ubuntu-iso-checksums").splitlines() | select("match", ".*ubuntu-24.04.3-live-server-amd64.iso$") | list }}'
+      when: streambox_refresh_vm_isos
 
     - name: streambox serve cloud-init files over http
       ansible.builtin.shell:
@@ -105,7 +115,7 @@
         virt-install  --name=obs --description='OBS Server' \
         --vcpus=2 --ram=4096 \
         --disk path=/var/lib/libvirt/images/obs/obs.qcow2,size=32 \
-        --location '/usr/local/share/vm-configs/isos/ubuntu-24.04.3-live-server-amd64.iso',initrd=casper/initrd,kernel=casper/vmlinuz \
+        --location '/usr/local/share/vm-configs/isos/ubuntu.24.04.iso',initrd=casper/initrd,kernel=casper/vmlinuz \
         --extra-args="ip=dhcp autoinstall ds=nocloud-net;s=http://192.168.122.1:3003/" \
         --network default,mac=52:54:00:05:05:52 \
         --destroy-on-exit --autostart
@@ -117,6 +127,14 @@
     - name: streambox configure filesystem passthrough
       ansible.builtin.shell: |
         virt-xml obs --add-device --filesystem accessmode=passthrough,driver.type=virtiofs,driver.queue=1024,source.dir=/var/opt/obs-server/,target.dir=obs_data,type=mount
+
+    - name: streambox create vm checkpoint from stopped vm
+      ansible.builtin.shell: |
+        virsh checkpoint-create-as --domain obs --name 'inital install'
+    
+    - name: streambox start obs vm
+      ansible.builtin.shell: |
+        virsh start obs
 
   always:
     - name: kill cloud data http.server
