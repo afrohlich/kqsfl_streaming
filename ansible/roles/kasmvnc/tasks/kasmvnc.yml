@@ -34,10 +34,10 @@
     dest: .vnc/kasmvnc.yaml 
     owner: stream-admin
 
-- name: kasmvnc physical display
+- name: kasmvnc preload xstartup for physical display
   # https://github.com/kasmtech/KasmVNC/issues/151
   ansible.builtin.copy:
-    src: xstartup
+    src: xstartup-xproxy
     dest: "/home/{{kasmvnc_user}}/.vnc/xstartup"
     owner: stream-admin
   when: kasmvnc_physical_display
