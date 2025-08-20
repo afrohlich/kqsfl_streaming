@@ -82,7 +82,7 @@
     - name: download base os for obs-server vm
       get_url:
         url: https://releases.ubuntu.com/noble/ubuntu-24.04.3-live-server-amd64.iso
-        dest: /usr/local/share/vm-configs/isos/ubuntu.24.04.iso
+        dest: /usr/local/share/vm-configs/isos/ubuntu-24.04.iso
         checksum: 'sha256sum:{{ ubuntu_checksums[0].split()[0] }}'
       vars:
         ubuntu_checksums: '{{ lookup("file", "/usr/local/share/vm-configs/isos/ubuntu-iso-checksums").splitlines() | select("match", ".*ubuntu-24.04.3-live-server-amd64.iso$") | list }}'
@@ -113,13 +113,19 @@
 
     - name: streambox install obs server
       ansible.builtin.shell: |
-        virt-install  --name=obs --description='OBS Server' \
+        timeout 300 virt-install  --name=obs --description='OBS Server' \
         --vcpus=2 --ram=4096 \
         --disk path=/var/lib/libvirt/images/obs/obs.qcow2,size=32 \
-        --location '/usr/local/share/vm-configs/isos/ubuntu.24.04.iso',initrd=casper/initrd,kernel=casper/vmlinuz \
+        --location '/usr/local/share/vm-configs/isos/ubuntu-24.04.iso',initrd=casper/initrd,kernel=casper/vmlinuz \
         --extra-args="ip=dhcp autoinstall ds=nocloud-net;s=http://192.168.122.1:3003/" \
         --network default,mac=52:54:00:05:05:52 \
         --destroy-on-exit --autostart
+      
+
+      # The autoinstall process can be difficult to monitor
+      # The vm display can be attached to at 5900
+      # The ansible manager use ssh -L 5900:localhost:5900 stream-admin@streambox.lan
+      # Then connect using remote desktop viewer via the SPICE protocol on localhost:5900
 
     - name: streambox set static ip for vm
       ansible.builtin.shell: |
