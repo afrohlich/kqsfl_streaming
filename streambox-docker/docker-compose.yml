@@ -14,18 +14,18 @@ services:
     networks:
       - streaming_network
     extra_hosts:
-      - "host.docker.internal:172.17.0.1"
+      - "host.docker.internal:host-gateway"
 
   restreamer:
     image: datarhei/restreamer:latest
     container_name: restreamer
     restart: unless-stopped
     ports:
-      - "8080:8080"     # Restreamer web UI
-      - "8181:8181"     # Restreamer API
-      - "1935:1935"     # RTMP input/output (live streaming)
-      - "1936:1936"     # RTMP stats/management or alternative RTMP port
-      - "6000:6000/udp" # RTP/UDP streaming (for media transport)
+      - "172.20.0.1:8080:8080"     # Restreamer web UI
+      - "172.20.0.1:8181:8181"     # Restreamer API
+      - "172.20.0.1:1935:1935"     # RTMP input/output (live streaming)
+      - "172.20.0.1:1936:1936"     # RTMP stats/management or alternative RTMP port
+      - "172.20.0.1:6000:6000/udp" # RTP/UDP streaming (for media transport)
     volumes:
       - ./restreamer/config:/core/config
       - ./restreamer/data:/core/data
@@ -35,16 +35,16 @@ services:
     networks:
       - streaming_network
     extra_hosts:
-      - "host.docker.internal:172.17.0.1"
+      - "host.docker.internal:host-gateway"
 
   dns-server:
     image: jpillora/dnsmasq:latest
     container_name: dns-server
     restart: unless-stopped
     ports:
-      - "53:53/udp"
-      - "53:53/tcp"
-      - "5380:8080"
+      - "172.20.0.1:53:53/udp"
+      - "172.20.0.1:53:53/tcp"
+      - "172.20.0.1:5380:8080"
     volumes:
       - ./dnsmasq/dnsmasq.conf:/etc/dnsmasq.conf
     cap_add:
@@ -60,19 +60,19 @@ services:
     volumes:
       - ./olivetin/config:/config
     expose:
-      - 1337
+      - 172.20.0.1::1337:1337
     restart: unless-stopped
     networks:
       - streaming_network
     extra_hosts:
-      - "host.docker.internal:172.17.0.1"
+      - "host.docker.internal:host-gateway"
 
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "172.20.0.1:3000:3000"
     volumes:
       - grafana_data:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning
@@ -83,14 +83,14 @@ services:
     networks:
       - streaming_network
     extra_hosts:
-      - "host.docker.internal:172.17.0.1"
+      - "host.docker.internal:host-gateway"
 
   loki:
     image: grafana/loki:latest
     container_name: loki
     restart: unless-stopped
     ports:
-      - "3100:3100"
+      - "172.20.0.1:3100:3100"
     volumes:
       - ./loki/config.yaml:/etc/loki/config.yaml
       - loki_data:/loki
@@ -98,7 +98,7 @@ services:
     networks:
       - streaming_network
     extra_hosts:
-      - "host.docker.internal:172.17.0.1"
+      - "host.docker.internal:host-gateway"
 
   lldap:
     image: lldap/lldap:stable
@@ -108,7 +108,7 @@ services:
       # For LDAPS (LDAP Over SSL), enable port if LLDAP_LDAPS_OPTIONS__ENABLED set true, look env below
       #- "6360:6360"
       # For the web front-end
-      - "17170:17170"
+      - "172.20.0.1:17170:17170"
     volumes:
       - "lldap_data:/data"
       # Alternatively, you can mount a local folder
@@ -120,7 +120,7 @@ services:
       - LLDAP_JWT_SECRET=REPLACE_WITH_RANDOM
       - LLDAP_KEY_SEED=REPLACE_WITH_RANDOM
       - LLDAP_LDAP_BASE_DN=dc=example,dc=com
-      - LLDAP_LDAP_USER_PASS=adminPas$word
+      - LLDAP_LDAP_USER_PASS=adminPas5word
       # If using LDAPS, set enabled true and configure cert and key path
       # - LLDAP_LDAPS_OPTIONS__ENABLED=true
       # - LLDAP_LDAPS_OPTIONS__CERT_FILE=/path/to/certfile.crt
@@ -141,12 +141,17 @@ services:
     networks:
       - streaming_network
     extra_hosts:
-      - "host.docker.internal:172.17.0.1"
+      - "host.docker.internal:host-gateway"
 
 networks:
   streaming_network:
     driver: bridge
-
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.20.0.0/24      # Subnet range
+          gateway: 172.20.0.1        # Gateway IP
+          ip_range: 172.20.0.0/24    # Available IP range
 volumes:
   lldap_data:
   grafana_data:
