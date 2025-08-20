@@ -60,7 +60,7 @@ services:
     volumes:
       - ./olivetin/config:/config
     expose:
-      - 172.20.0.1::1337:1337
+      - 172.20.0.1:1337:1337
     restart: unless-stopped
     networks:
       - streaming_network
