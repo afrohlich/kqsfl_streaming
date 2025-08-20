@@ -1,53 +1,38 @@
-:80 {
-   log
+{
+    # Global options
+    local_certs  # This tells Caddy to use self-signed certificates
+}
 
+https://streambox.lan {
+   log
 
   redir /restreamer /restreamer/
   handle /restreamer/* {
-    reverse_proxy host.docker.internal:8080
+    reverse_proxy http://host.docker.internal:8080
     uri strip_prefix /restreamer/
   }
 
-
   redir /host/term /host/term/
   handle /host/term/* {
-    reverse_proxy /host/term /host/term/
-    reverse_proxy /host/term/* host.docker.internal:8082
-  }
-
-  redir /host/vnc /host/vnc/vnc.html?path=/host/vnc/websockify
-  handle /host/vnc/* {
-    redir /host/vnc/ /host/vnc/vnc.html
-    handle /host/vnc/vnc.html {
-      @missing_host_ws_path {
-        not query path=/host/vnc/websockify
-      }
-      redir @missing_host_ws_path /host/vnc/vnc.html?path=/host/vnc/websockify
-    }
-
-    handle_path /host/vnc/* {
-      reverse_proxy host.docker.internal:8080
-
-      # NoVNC doesn't protect against directory traveral
-      @dir_matcher path_regexp \/$
-      respond @dir_matcher 403
-    }
+    redir /host/term /host/term/
+    reverse_proxy /host/term/* http://host.docker.internal:8082
   }
 
   redir /obs/vnc /obs/vnc/
   handle /obs/vnc/* {
-    @missing_obs_ws_path {
-      path /obs/vnc/
-      not query path=/obs/vnc/websockify
-    }
-    redir @missing_obs_ws_path /obs/vnc/?path=/obs/vnc/websockify
+    redir /obs/vnc  /obs/vnc/vnc.html
+    redir /obs/vnc/ /obs/vnc/vnc.html
 
     handle_path /obs/vnc/* {
-      reverse_proxy https://obs-server:6901 {
+      reverse_proxy https://192.168.122.101:8444 {
         transport http {
           tls_insecure_skip_verify
         }
       }
+
+      # KasmVNC doesn't protect against directory traveral
+      @dir_matcher path_regexp \/$
+      respond @dir_matcher 403
     }
   }
 
