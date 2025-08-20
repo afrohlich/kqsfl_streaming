@@ -1,0 +1,3 @@
+#!/bin/sh
+set -x
+kasmxproxy -a :0 -v :1
