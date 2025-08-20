@@ -12,6 +12,12 @@
       groups: video,render
       append: yes
 
+  - name: Add SSH public key to remote host
+    ansible.posix.authorized_key:
+      user: "{{primary_user}}"
+      state: present
+      key: "{{ lookup('file', '/{{ lookup('ansible.builtin.env', 'HOME') }}/.ssh/id_rsa.pub') }}"
+
   - name: configure ssh
     ansible.builtin.apt:
       pkg:
