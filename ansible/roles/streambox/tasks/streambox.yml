@@ -113,7 +113,7 @@
 
     - name: streambox install obs server
       ansible.builtin.shell: |
-        timeout 300 virt-install  --name=obs --description='OBS Server' \
+        virt-install --wait 7 --name=obs --description='OBS Server' \
         --vcpus=2 --ram=4096 \
         --disk path=/var/lib/libvirt/images/obs/obs.qcow2,size=32 \
         --location '/usr/local/share/vm-configs/isos/ubuntu-24.04.iso',initrd=casper/initrd,kernel=casper/vmlinuz \
@@ -135,9 +135,9 @@
       ansible.builtin.shell: |
         virt-xml obs --add-device --filesystem accessmode=passthrough,driver.type=virtiofs,driver.queue=1024,source.dir=/var/opt/obs-server/,target.dir=obs_data,type=mount
 
-    - name: streambox create vm checkpoint from stopped vm
+    - name: streambox create vm snapshot from stopped vm
       ansible.builtin.shell: |
-        virsh checkpoint-create-as --domain obs --name 'inital install'
+        virsh snapshot-create-as --domain obs --name 'inital install'
     
     - name: streambox start obs vm
       ansible.builtin.shell: |
