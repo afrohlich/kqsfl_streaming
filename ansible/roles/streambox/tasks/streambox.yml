@@ -140,8 +140,8 @@
         virsh snapshot-create-as --domain obs --name 'inital install'
     
     - name: streambox start obs vm
-      ansible.builtin.shell: |
-        virsh start obs
+      ansible.builtin.shell:
+        cmd: virsh start obs
 
   always:
     - name: kill cloud data http.server

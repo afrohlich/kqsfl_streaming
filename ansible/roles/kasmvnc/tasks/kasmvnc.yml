@@ -40,6 +40,7 @@
     src: xstartup-xproxy
     dest: "/home/{{kasmvnc_user}}/.vnc/xstartup"
     owner: stream-admin
+    mode: 744
   when: kasmvnc_physical_display
 
 - name: kasmvnc create basic user systemd directory

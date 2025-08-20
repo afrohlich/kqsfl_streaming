@@ -24,12 +24,8 @@
   pre_tasks:
     - name: wait for vms
       ansible.builtin.wait_for_connection:
-        delay: 60
-        timeout: 600
-
-    - name: ensure vm is running
-      ansible.builtin.shell:
-        command: virsh start obs || true
+        delay: 10
+        timeout: 120
 
   roles:
     - name: single-user-kiosk
@@ -43,6 +39,16 @@
     - name: obs-server
 
   post_tasks:
+    - name: create snapshot of obs-server vm
+      delegate_to: streambox
+      ansible.builtin.command:
+        cmd: >
+          virsh snapshot-create-as --domain obs-server
+          obs-server-snapshot-{{ ansible_date_time.iso8601_basic_short }}
+          --description "Automated snapshot from Ansible"
+      register: obs_vm_snapshot
+      ignore_errors: yes
+
     - name: reboot
       ansible.builtin.reboot:
         reboot_timeout: 300

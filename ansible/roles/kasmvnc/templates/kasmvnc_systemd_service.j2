@@ -5,7 +5,6 @@ Requires=graphical.target
 
 [Service]
 User={{kasmvnc_user}}
-ExecStartPre=/usr/bin/vncserver -kill :1 > /dev/null 2>&1
 ExecStart=/usr/bin/vncserver :1
 # ExecStop unnecessary if not using "-fg" option and using "Type=forking"
 ExecStop=/usr/bin/vncserver -kill :1

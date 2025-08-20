@@ -16,8 +16,8 @@
     ansible.posix.authorized_key:
       user: "{{primary_user}}"
       state: present
-      key: "{{ lookup('file', '/{{ lookup('ansible.builtin.env', 'HOME') }}/.ssh/id_rsa.pub') }}"
-
+      key: "{{ lookup('file', lookup('env', 'HOME') + '/.ssh/streambox-admin.pub') }}"
+    
   - name: configure ssh
     ansible.builtin.apt:
       pkg:
