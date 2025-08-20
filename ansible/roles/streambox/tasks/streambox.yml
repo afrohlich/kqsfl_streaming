@@ -75,6 +75,7 @@
 
     - name: streambox get ubuntu checksumfile
       get_url:
+        # Multiple checksums in one file - https://github.com/ansible/ansible/issues/48790
         url: https://releases.ubuntu.com/24.04.3/SHA256SUMS
         dest: /usr/local/share/vm-configs/isos/ubuntu-iso-checksums
 
