@@ -48,6 +48,12 @@
     state: directory
     owner: stream-admin
 
+- name: kasmvnc create basic user systemd directory
+  ansible.builtin.file:
+    path: "/home/{{kasmvnc_user}}/.vnc/.de-was-selected"
+    state: directory
+    owner: stream-admin
+
 - name: kasmvnc configure systemd service
   ansible.builtin.template:
     src: kasmvnc_systemd_service.j2
