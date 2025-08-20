@@ -6,7 +6,7 @@
 https://streambox.lan {
   log
 
-  redir /restreamer /restreamer/
+  redir /restreamer /restreamer/ui
   handle /restreamer/* {
     reverse_proxy http://restreamer:8080
     uri strip_prefix /restreamer
