@@ -26,6 +26,7 @@
       ansible.builtin.wait_for_connection:
         delay: 60
         timeout: 600
+
     - name: ensure vm is running
       ansible.builtin.shell:
         command: virsh start obs || true
