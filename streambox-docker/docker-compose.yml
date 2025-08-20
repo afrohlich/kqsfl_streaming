@@ -14,7 +14,7 @@ services:
     networks:
       - streaming_network
     extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - "host.docker.internal:172.20.0.1"
 
   restreamer:
     image: datarhei/restreamer:latest
@@ -35,7 +35,7 @@ services:
     networks:
       - streaming_network
     extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - "host.docker.internal:172.20.0.1"
 
   dns-server:
     image: jpillora/dnsmasq:latest
@@ -65,7 +65,7 @@ services:
     networks:
       - streaming_network
     extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - "host.docker.internal:172.20.0.1"
 
   grafana:
     image: grafana/grafana:latest
@@ -83,7 +83,7 @@ services:
     networks:
       - streaming_network
     extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - "host.docker.internal:172.20.0.1"
 
   loki:
     image: grafana/loki:latest
@@ -98,7 +98,7 @@ services:
     networks:
       - streaming_network
     extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - "host.docker.internal:172.20.0.1"
 
   lldap:
     image: lldap/lldap:stable
@@ -141,7 +141,7 @@ services:
     networks:
       - streaming_network
     extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - "host.docker.internal:172.20.0.1"
 
 networks:
   streaming_network:
