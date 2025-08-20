@@ -59,11 +59,8 @@ https://streambox.lan {
 
   redir /obs-shortcuts /obs-shortcuts/
   handle /obs-shortcuts/* {
-    reverse_proxy https://olivetin:1337 {
-      transport http {
-        tls_insecure_skip_verify
-      }
-    }
+    reverse_proxy https://olivetin:1337
+    uri strip_prefix /obs-shortcuts
   }
 
   file_server /* {
