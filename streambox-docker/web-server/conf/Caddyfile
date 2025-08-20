@@ -23,9 +23,9 @@ https://streambox.lan {
     redir /obs-vnc  /obs-vnc/vnc.html
     redir /obs-vnc/ /obs-vnc/vnc.html
 
-    uri query path '/obs-vnc/websockify'
-
+    uri query replace path '/obs-vnc/websockify'
     handle_path /obs-vnc/* {
+
 
       reverse_proxy https://192.168.122.101:8444 {
         transport http {
@@ -41,10 +41,7 @@ https://streambox.lan {
 
   redir /metrics /metrics/
   handle /metrics/* {
-    reverse_proxy https://grafana:3000 {
-      transport http {
-        tls_insecure_skip_verify
-      }
+    reverse_proxy http://grafana:3000 {
     }
   }
 
@@ -59,7 +56,7 @@ https://streambox.lan {
 
   redir /obs-shortcuts /obs-shortcuts/
   handle /obs-shortcuts/* {
-    reverse_proxy https://olivetin:1337
+    reverse_proxy http://olivetin:1337
     uri strip_prefix /obs-shortcuts
   }
 
