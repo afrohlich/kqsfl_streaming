@@ -34,6 +34,7 @@
           - inotify-tools
           - dbus-x11
           - net-tools
+          - python3-lxml
         update_cache: true
 
 - name: streambox configure hypervisor
@@ -62,6 +63,57 @@
         - /var/lib/libvirt/images/obs
         - /var/opt/obs-server/
 
+- name: streambox configure libvirt nets
+  block:
+    - name: get network info
+      community.libvirt.virt_net:
+        command: info
+        network: streambox
+      register: libvirt_networks
+      tags: configure_libvirt_nets
+
+    - name: output libvirt-network info
+      debug:
+        var: libvirt_networks.networks.streambox
+      tags: configure_libvirt_nets
+
+    - name: get network status
+      community.libvirt.virt_net:
+        command: status
+        network: streambox
+      register: streambox_vm_network_status
+      tags: configure_libvirt_nets
+
+    - name: output streambox_vm_network_status
+      debug:
+        var: streambox_vm_network_status
+      tags: configure_libvirt_nets
+
+    - name: streambox create vm network
+      community.libvirt.virt_net:
+        command: define
+        network: streambox
+        xml: '{{ lookup("template", "obs-libvirt-network.xml.j2") }}'
+      tags: configure_libvirt_nets
+
+    - name: enable autostart for vm network
+      community.libvirt.virt_net:
+        network: streambox
+        autostart: true
+      tags: configure_libvirt_nets
+
+    - name: enable vm network
+      community.libvirt.virt_net:
+        command: start
+        network: streambox
+      tags: configure_libvirt_nets
+
+    - name: add obs vm static ip
+      community.libvirt.virt_net:
+        command: modify
+        name: streambox
+        xml: "<host mac='52:54:00:05:05:52' name='obs' ip='192.168.122.101'/>"
+      tags: configure_libvirt_nets
 
 - name: streambox build and start obs vm
   block:
@@ -72,12 +124,14 @@
       loop:
         - user-data
         - meta-data
+      tags: configure_obs_vm
 
     - name: streambox get ubuntu checksumfile
       get_url:
         # Multiple checksums in one file - https://github.com/ansible/ansible/issues/48790
         url: https://releases.ubuntu.com/24.04.3/SHA256SUMS
         dest: /usr/local/share/vm-configs/isos/ubuntu-iso-checksums
+      tags: configure_obs_vm
 
     - name: download base os for obs-server vm
       get_url:
@@ -87,6 +141,7 @@
       vars:
         ubuntu_checksums: '{{ lookup("file", "/usr/local/share/vm-configs/isos/ubuntu-iso-checksums").splitlines() | select("match", ".*ubuntu-24.04.3-live-server-amd64.iso$") | list }}'
       when: streambox_refresh_vm_isos
+      tags: configure_obs_vm
 
     - name: streambox serve cloud-init files over http
       ansible.builtin.shell:
@@ -98,29 +153,23 @@
         chdir: "{{ http_root }}"
       register: http_pid
       changed_when: http_pid.stdout | length > 0
+      tags: configure_obs_vm
 
-    - name: streambox add static ip for vm mac address
-      ansible.builtin.shell: |
-        mac='52:54:00:05:05:52'
-        host_defined=$(virsh net-dumpxml default --xpath "/network/ip/dhcp/host[@mac='$mac']" | grep host | wc -l)
-        if [ $host_defined -eq 1 ] ; then
-          virsh net-update default modify ip-dhcp-host --xml "<host mac='$mac' name='obs' ip='192.168.122.101'/>"   --parent-index 0
-        elif [ $host_defined -eq 0 ] ; then
-          virsh net-update default add ip-dhcp-host --xml "<host mac='$mac' name='obs' ip='192.168.122.101'/>"   --parent-index 0
-        else
-          echo "host defined $host_defined times" && exit 1
-        fi 
 
     - name: streambox install obs server
       ansible.builtin.shell: |
-        virt-install --wait 7 --name=obs --description='OBS Server' \
+        virt-install \
+        --wait 7 \
+        --name=obs \
+        --description='OBS Server' \
         --vcpus=2 --ram=4096 \
         --disk path=/var/lib/libvirt/images/obs/obs.qcow2,size=32 \
         --location '/usr/local/share/vm-configs/isos/ubuntu-24.04.iso',initrd=casper/initrd,kernel=casper/vmlinuz \
-        --extra-args="ip=dhcp autoinstall ds=nocloud-net;s=http://192.168.122.1:3003/" \
-        --network default,mac=52:54:00:05:05:52 \
-        --destroy-on-exit --autostart
-      
+        --extra-args="ip=dhcp autoinstall ds=nocloud-net;s=http://192.168.120.1:3003/" \
+        --network streambox,mac=52:54:00:05:05:52 \
+        --destroy-on-exit \
+        --autostart
+      tags: configure_obs_vm
 
       # The autoinstall process can be difficult to monitor
       # The vm display can be attached to at 5900
@@ -130,18 +179,22 @@
     - name: streambox set static ip for vm
       ansible.builtin.shell: |
         virt-xml obs --edit --memorybacking source.type=memfd,access.mode=shared,
+      tags: configure_obs_vm
 
     - name: streambox configure filesystem passthrough
       ansible.builtin.shell: |
         virt-xml obs --add-device --filesystem accessmode=passthrough,driver.type=virtiofs,driver.queue=1024,source.dir=/var/opt/obs-server/,target.dir=obs_data,type=mount
+      tags: configure_obs_vm
 
     - name: streambox create vm snapshot from stopped vm
       ansible.builtin.shell: |
         virsh snapshot-create-as --domain obs --name 'inital install'
+      tags: configure_obs_vm
     
     - name: streambox start obs vm
       ansible.builtin.shell:
         cmd: virsh start obs
+      tags: configure_obs_vm
 
   always:
     - name: kill cloud data http.server
