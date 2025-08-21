@@ -186,6 +186,12 @@
         virt-xml obs --add-device --filesystem accessmode=passthrough,driver.type=virtiofs,driver.queue=1024,source.dir=/var/opt/obs-server/,target.dir=obs_data,type=mount
       tags: configure_obs_vm
 
+    - name: streambox configure pci passthrough
+      ansible.builtin.shell: >
+        lspci | grep -i usb | sed 's/ .*//' | 
+        xargs -I {} sudo bash -c 'virt-xml obs --add-device --hostdev {} || true'
+      tags: configure_obs_vm
+
     - name: streambox create vm snapshot from stopped vm
       ansible.builtin.shell: |
         virsh snapshot-create-as --domain obs --name 'inital install'
