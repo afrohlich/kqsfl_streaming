@@ -1,0 +1,88 @@
+- name: streambox configure google drive sync for obs backups
+  tags: configure_gdrive
+  block:
+    - name: streambox install rclone dependencies
+      ansible.builtin.apt:
+        pkg: fuse3
+
+    - name: streambox install rclone
+      ansible.builtin.include_role:
+        name: stefangweichinger.ansible_rclone
+      vars:
+        rclone_version: "{{streambox_rclone_version}}"
+        # Versions listed at https://github.com/rclone/rclone/releases
+
+    - name: streambox create mount point
+      file:
+        path: "{{streambox_rclone_gdrive_mount_point}}"
+        state: directory
+        owner: stream-admin
+
+    - name: streambox configure rclone with GDrive mount
+      ansible.builtin.include_role:
+        name: stefangweichinger.ansible_rclone
+        # https://rclone.org/drive/#making-your-own-client-id
+      vars:
+        rclone_config_owner:
+          OWNER: stream-admin
+          GROUP: stream-admin
+        rclone_config_location: "/home/stream-admin/.config/rclone/rclone.conf"
+        rclone_configs:
+          - name: gdrive-obs
+            properties:
+              type: drive
+              scope: drive
+              metadata_labels: read,write
+              root_folder_id: "{{streambox_rclone_gdrive_root_folder}}"
+              client_id: "{{streambox_rclone_gdrive_client_id  | mandatory}}"
+              client_secret: "{{streambox_rclone_gdrive_client_secret  | mandatory}}"
+              token: "{{streambox_rclone_gdrive_oauth_token  | mandatory | to_json}}"
+              description: connect to gdrive using oauth as a real authorized user
+      when: streambox_rclone_gdrive_use_oauth|bool
+
+    - name: streambox configure rclone with GDrive mount
+      ansible.builtin.include_role:
+        name: stefangweichinger.ansible_rclone
+        # https://rclone.org/drive/#making-your-own-client-id
+      vars:
+        rclone_config_owner:
+          OWNER: stream-admin
+          GROUP: stream-admin
+        rclone_config_location: "/home/stream-admin/.config/rclone/rclone.conf"
+        rclone_configs:
+          - name: gdrive-obs
+            properties:
+              type: drive
+              scope: drive
+              metadata_labels: read,write
+              root_folder_id: "{{streambox_rclone_gdrive_root_folder}}"
+              shared_with_me: true
+              service_account_credentials: "{{streambox_rclone_gdrive_sa_token | mandatory | to_json}}"
+              description: connect to gdrive using service account
+      when: not streambox_rclone_gdrive_use_oauth|bool
+
+    - name: streambox create rclone systemd
+      become: yes
+      become_user: stream-admin
+      ansible.builtin.template:
+        src: rclone_systemd_user_mount.j2
+        dest: "/home/stream-admin/.config/systemd/user/rclone@.service"
+        owner: stream-admin
+      register: setup_rclone_config
+
+    - name: streambox register uid of stream-admin
+      command: id -u stream-admin
+      register: stream_admin_uid
+
+    - name: streambox restart rclone mount
+      become: yes
+      become_user: stream-admin
+      ansible.builtin.systemd:
+        name: rclone@gdrive-obs.service    #name after the @ must match the name of the config name 
+        scope: user
+        daemon_reload: true
+        state: restarted
+        enabled: true
+      environment:
+        XDG_RUNTIME_DIR: /run/user/{{stream_admin_uid.stdout}}
+      when: setup_rclone_config.changed
