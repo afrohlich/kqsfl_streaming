@@ -1,0 +1,125 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 255, 255, 255;
+  --background-start-rgb: 0, 0, 0;
+  --background-end-rgb: 0, 0, 0;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(
+      to bottom,
+      transparent,
+      rgb(var(--background-end-rgb))
+    )
+    rgb(var(--background-start-rgb));
+}
+
+/* 16:9 Aspect Ratio Box Styles */
+.aspect-ratio-container {
+  width: 80vw;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.aspect-ratio-box {
+  position: relative;
+  width: 100%;
+  padding-bottom: 56.25%; /* 16:9 ratio (9/16 = 0.5625) */
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+}
+
+.aspect-ratio-box .content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: white;
+}
+
+.aspect-ratio-box h2 {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.aspect-ratio-box p {
+  font-size: 1.25rem;
+  opacity: 0.9;
+}
+
+/* Stream Overlay Styles */
+.stream-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding: 2rem;
+  background: linear-gradient(180deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 100%);
+  color: white;
+}
+
+.overlay-header h1 {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+.overlay-header p {
+  font-size: 1rem;
+  opacity: 0.8;
+}
+
+.overlay-stats {
+  position: absolute;
+  bottom: 2rem;
+  right: 2rem;
+  display: flex;
+  gap: 2rem;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  opacity: 0.7;
+  margin-bottom: 0.25rem;
+}
+
+.stat-value {
+  font-size: 1.25rem;
+  font-weight: bold;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .aspect-ratio-container {
+    width: 95vw;
+  }
+  
+  .aspect-ratio-box h2 {
+    font-size: 1.75rem;
+  }
+  
+  .aspect-ratio-box p {
+    font-size: 1rem;
+  }
+}
