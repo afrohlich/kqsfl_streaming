@@ -112,7 +112,7 @@
       community.libvirt.virt_net:
         command: modify
         name: streambox
-        xml: "<host mac='52:54:00:05:05:52' name='obs' ip='192.168.122.101'/>"
+        xml: "<host mac='52:54:00:05:05:52' name='obs' ip='192.168.120.101'/>"
       tags: configure_libvirt_nets
 
 - name: streambox build and start obs vm

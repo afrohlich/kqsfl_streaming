@@ -27,7 +27,7 @@ https://streambox.lan {
     handle_path /obs-vnc/* {
 
 
-      reverse_proxy https://192.168.122.101:8444 {
+      reverse_proxy https://192.168.120.101:8444 {
         transport http {
           tls_insecure_skip_verify
         }
