@@ -6,7 +6,7 @@ A Next.js application that displays streaming overlays with a 16:9 aspect ratio 
 
 - 16:9 aspect ratio display component
 - Reusable React components
-- Responsive design with Tailwind CSS
+- Responsive design with Pico CSS
 - TypeScript support
 
 ## Getting Started
