@@ -3,7 +3,7 @@
     local_certs  # This tells Caddy to use self-signed certificates
 }
 
-https://streambox.lan {
+http://localhost:80, https://streambox.lan:443 {
   log
 
   redir /restreamer /restreamer/ui

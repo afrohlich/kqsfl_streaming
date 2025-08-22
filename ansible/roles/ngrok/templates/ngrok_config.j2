@@ -3,7 +3,21 @@ agent:
     authtoken: {{streambox_ngrok_token}}
 
 endpoints:
-  - name: streambox_frontend
+  - name: streambox
     url: {{ngrok_public_url}}
     upstream:
       url: localhost:80
+    traffic_policy:
+      on_http_request:
+        - actions:
+          - type: basic-auth
+            config:
+              realm: sample-realm
+              credentials:
+                - user:{{streambox_ngrok_user}}
+                - admin:{{streambox_ngrok_password}}
+              enforce: true
+          - type: add-headers
+            config:
+              headers:
+                host: localhost
