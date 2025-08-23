@@ -7,6 +7,15 @@
   ansible.builtin.apt:
     deb: /tmp/kasmvnc.deb
 
+- name: kasmvnc move base path files
+  when: kasmvnc_uri_prefix is defined and kasmvnc_uri_prefix != ''
+  block:
+    - name: kasm move all web files to temp directory
+      ansible.builtin.shell: |
+        mkdir -p /usr/share/kasmvnc/www/{{kasmvnc_uri_prefix}}
+        mv /usr/share/kasmvnc/www/ /usr/share/kasmvnc/www/{{kasmvnc_uri_prefix}} 2>/dev/null || true
+      creates: "/usr/share/kasmvnc/www/{{kasmvnc_uri_prefix}}"
+
 - name: kasmvnc add user to ssl-cert group
   ansible.builtin.user:
     name: "{{ kasmvnc_user }}"
@@ -70,4 +79,3 @@
     enabled: true
     daemon_reload: true
     state: restarted
-
