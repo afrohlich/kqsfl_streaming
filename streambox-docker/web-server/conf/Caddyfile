@@ -11,7 +11,6 @@ http://localhost:80, https://streambox.lan:443 {
 		{$kasmvnc_user} {$kasmvnc_hashed_password}
 	}
 
-
   redir /restreamer /restreamer/ui
   handle /restreamer/* {
     reverse_proxy http://restreamer:8080
@@ -27,16 +26,14 @@ http://localhost:80, https://streambox.lan:443 {
   redir /obs-vnc /obs-vnc/
   handle /obs-vnc/* {
     redir /obs-vnc/ /obs-vnc/vnc.html
+    
+    uri strip_prefix /obs-vnc/*
 
-    uri query replace path '/obs-vnc/websockify'
-    handle_path /obs-vnc/* {
-
-
-      reverse_proxy https://192.168.120.101:8444 {
-        transport http {
-          tls_insecure_skip_verify
-        }
+    reverse_proxy https://192.168.120.101:8444 {
+      transport http {
+        tls_insecure_skip_verify
       }
+    }
 
       # KasmVNC doesn't protect against directory traveral
       @dir_matcher path_regexp \/$
