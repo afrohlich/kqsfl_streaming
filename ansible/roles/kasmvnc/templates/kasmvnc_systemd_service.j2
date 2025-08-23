@@ -5,7 +5,7 @@ Requires=graphical.target
 
 [Service]
 User={{kasmvnc_user}}
-ExecStart=/usr/bin/vncserver :1
+ExecStart=/usr/bin/vncserver :1 {{ '-disableBasicAuth' if not kasmvnc_basic_auth }}
 # ExecStop unnecessary if not using "-fg" option and using "Type=forking"
 ExecStop=/usr/bin/vncserver -kill :1
 Restart=on-failure

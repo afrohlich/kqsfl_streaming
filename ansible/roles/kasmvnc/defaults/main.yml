@@ -1,2 +1,3 @@
 kasmvnc_version: 1.3.3
 kasmvnc_physical_display: true
+kasmvnc_basic_auth: false
