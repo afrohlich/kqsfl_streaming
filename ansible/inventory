@@ -13,7 +13,7 @@ vm:
     # Hosts are VMs on the streambox
     # IP addresses will be statically assigned
     obs-server:
-      ansible_host: 192.168.122.101
+      ansible_host: 192.168.120.101
       ansible_user: stream-admin
       ansible_password: admin
       ansible_become_password: "{{ ansible_password }}"

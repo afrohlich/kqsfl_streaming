@@ -1,2 +1,1 @@
-ngrok_endpoints:
-  - streambox_frontend
+ngrok_endpoint: streambox_frontend

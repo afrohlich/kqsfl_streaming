@@ -1,17 +1,30 @@
-- name: ngrok install
-  community.general.snap:
-    name: ngrok
-    update_cache: true
-
 - name: ngrok create system user
   ansible.builtin.user:
     name: ngrok
     system: true
-    home: /etc/ngrok
+    home: /var/lib/ngrok
     create_home: true
     shell: /usr/sbin/nologin
     password: "!"
-    
+
+- name: ngrok install via apt
+  block:
+    - name: ngrok add an apt signing key
+      ansible.builtin.apt_key:
+        url: /etc/apt/trusted.gpg.d/ngrok.asc
+        state: present
+
+    - name: ngrok add repository
+      ansible.builtin.apt_repository:
+        repo: "deb [arch=amd64] https://ngrok-agent.s3.amazonaws.com bookworm main"
+        state: present
+
+    - name: ngrok install ngrok
+      ansible.builtin.apt:
+        name: ngrok
+        state: latest
+        update_cache: true
+
 - name: ngrok make config dir
   ansible.builtin.file:
     path: /etc/ngrok/
@@ -23,18 +36,19 @@
   template:
     src: ngrok_config.j2
     dest: "/etc/ngrok/ngrok.yml"
+    owner: ngrok
+    group: ngrok
 
 - name: ngrok systemd service
   template:
     src: ngrok_systemd_service.j2
-    dest: "/lib/systemd/system/ngrok@.service"
+    dest: "/lib/systemd/system/ngrok.service"
   register: setup_ngrok_config
 
 - name: ngrok restart service
   ansible.builtin.systemd:
-    name: ngrok@{{item}}.service    #name after the @ must match the name of the endpoint in the config 
+    name: ngrok.service
     daemon_reload: true
     state: restarted
     enabled: true
-  loop: "{{ ngrok_endpoints }}"
   when: setup_ngrok_config.changed

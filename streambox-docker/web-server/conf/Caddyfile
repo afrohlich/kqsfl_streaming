@@ -6,10 +6,9 @@
 http://localhost:80, https://streambox.lan:443 {
   log
 
-  @base_path_match path / /index.html
-  basic_auth @base_path_match {
-		{$kasmvnc_user} {$kasmvnc_hashed_password}
-	}
+  basic_auth {
+    {$kasmvnc_user} {$kasmvnc_hashed_password}
+  }
 
   redir /restreamer /restreamer/ui
   handle /restreamer/* {
@@ -19,7 +18,6 @@ http://localhost:80, https://streambox.lan:443 {
 
   redir /host-term /host-term/
   handle /host-term/* {
-    redir /host-term /host-term/
     reverse_proxy /host-term/* http://host.docker.internal:8082
   }
 
@@ -35,10 +33,10 @@ http://localhost:80, https://streambox.lan:443 {
       }
     }
 
-      # KasmVNC doesn't protect against directory traveral
-      @dir_matcher path_regexp \/$
-      respond @dir_matcher 403
-    }
+    # KasmVNC doesn't protect against directory traveral
+    @dir_matcher path_regexp \/$
+    respond @dir_matcher 403
+    
   }
 
   redir /metrics /metrics/

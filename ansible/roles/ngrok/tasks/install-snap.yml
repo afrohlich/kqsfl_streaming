@@ -1,0 +1,15 @@
+- name: ngrok install via snap
+  block:
+    - name: ngrok install
+      community.general.snap:
+        name: ngrok
+
+    - name: ngrok make snap specific home dir
+      ansible.builtin.file:
+        path: /home/ngrok/
+        state: directory
+        owner: ngrok
+        group: ngrok
+
+    - name: ngrok bind mount real home to 
+    - name: ngrok allow reading of configs via apparmor

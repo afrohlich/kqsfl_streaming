@@ -10,6 +10,8 @@
     - "{{ lookup('env', 'HOME') }}/streambox_credentials.yml"
   roles:
     - name: streambox
+    - name: ngrok
+    - name: rclone
 
 - name: configure obs server
   hosts: obs-server
@@ -42,10 +44,13 @@
     - name: create snapshot of obs-server vm
       delegate_to: streambox
       ansible.builtin.command:
-        cmd: >
-          virsh snapshot-create-as --domain obs-server
-          obs-server-snapshot-{{ ansible_date_time.iso8601_basic_short }}
-          --description "Automated snapshot from Ansible"
+        cmd: |
+          virsh destroy obs \
+          &&  virsh snapshot-create-as --domain obs \
+          obs-server-snapshot-{{ ansible_date_time.iso8601_basic_short }} \
+          --description "Automated snapshot from Ansible"  \
+          &&  virsh start obs
+ 
       register: obs_vm_snapshot
       ignore_errors: yes
 

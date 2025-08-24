@@ -4,8 +4,8 @@
     - name: streambox create admin user
       ansible.builtin.user:
         name: stream-admin
-        home: /home/stream-admin/
-        create_home: true
+        # home: /home/stream-admin/
+        # create_home: true
         shell: /bin/bash
         groups: video,render
         append: yes
@@ -35,6 +35,7 @@
           - dbus-x11
           - net-tools
           - python3-lxml
+          - snapd
         update_cache: true
 
 - name: streambox configure hypervisor
@@ -65,7 +66,7 @@
 
 - name: streambox configure libvirt nets
   block:
-    - name: get network info
+    - name: streambox get network info
       community.libvirt.virt_net:
         command: info
         network: streambox
@@ -78,6 +79,7 @@
       tags: configure_libvirt_nets
 
     - name: get network status
+      when: libvirt_networks.networks.streambox is defined
       community.libvirt.virt_net:
         command: status
         network: streambox
@@ -85,6 +87,7 @@
       tags: configure_libvirt_nets
 
     - name: output streambox_vm_network_status
+      when: libvirt_networks.networks.streambox is defined
       debug:
         var: streambox_vm_network_status
       tags: configure_libvirt_nets
@@ -133,14 +136,20 @@
         dest: /usr/local/share/vm-configs/isos/ubuntu-iso-checksums
       tags: configure_obs_vm
 
+    - name: streambox read checksums to variable
+      ansible.builtin.slurp:
+        src: /usr/local/share/vm-configs/isos/ubuntu-iso-checksums
+      register: ubuntu_checksum_data
+
     - name: download base os for obs-server vm
       get_url:
         url: https://releases.ubuntu.com/noble/ubuntu-24.04.3-live-server-amd64.iso
         dest: /usr/local/share/vm-configs/isos/ubuntu-24.04.iso
-        checksum: 'sha256sum:{{ ubuntu_checksums[0].split()[0] }}'
+        checksum: 'sha256:{{ ubuntu_server_24_04_checksum }}'
       vars:
-        ubuntu_checksums: '{{ lookup("file", "/usr/local/share/vm-configs/isos/ubuntu-iso-checksums").splitlines() | select("match", ".*ubuntu-24.04.3-live-server-amd64.iso$") | list }}'
-      when: streambox_refresh_vm_isos
+        ubuntu_checksum_lines: "{{ ubuntu_checksum_data['content'] | b64decode }}"
+        ubuntu_checksums: '{{ ubuntu_checksum_lines.splitlines() | select("match", ".*ubuntu-24.04.3-live-server-amd64.iso$") | list }}'
+        ubuntu_server_24_04_checksum: "{{ ubuntu_checksums[0].split()[0] }}"
       tags: configure_obs_vm
 
     - name: streambox serve cloud-init files over http
@@ -166,7 +175,7 @@
         --disk path=/var/lib/libvirt/images/obs/obs.qcow2,size=32 \
         --location '/usr/local/share/vm-configs/isos/ubuntu-24.04.iso',initrd=casper/initrd,kernel=casper/vmlinuz \
         --extra-args="ip=dhcp autoinstall ds=nocloud-net;s=http://192.168.120.1:3003/" \
-        --network streambox,mac=52:54:00:05:05:52 \
+        --network network=streambox,mac=52:54:00:05:05:52 \
         --destroy-on-exit \
         --autostart
       tags: configure_obs_vm
@@ -211,7 +220,7 @@
 - name: install docker
   tags: install_docker
   block:
-    - name: streambox install required system packages
+    - name: streambox docker install required system packages
       ansible.builtin.apt:
         pkg:
           - apt-transport-https
@@ -223,7 +232,7 @@
         state: latest
         update_cache: true
 
-    - name: streambox add an apt signing key
+    - name: streambox docker add an apt signing key
       ansible.builtin.apt_key:
         url: https://download.docker.com/linux/ubuntu/gpg
         state: present
@@ -233,7 +242,7 @@
         repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
         state: present
 
-    - name: streambox update apt and install docker-ce
+    - name: streambox docker install docker-ce
       ansible.builtin.apt:
         name:
           - docker-ce
@@ -250,7 +259,7 @@
         groups: docker
         append: yes
 
-- name: streambox primary docker compose
+- name: streambox upload primary docker compose
   tags: docker-compose
   block:
     - name: copy streambox docker compose configurations
@@ -269,7 +278,7 @@
       environment:
         KASM_VNC_PASSWORD: "{{streambox_vnc_password}}"
 
-- name: streambox remote access
+- name: streambox remote tty access
   block:
     - name: steambox remote tty setup
       # https://github.com/tsl0922/ttyd

@@ -1,16 +1,26 @@
 streambox_rclone_version: 1.68.1
-streambox_rclone_gdrive_root_folder:
-streambox_rclone_gdrive_use_oauth: true
-streambox_rclone_gdrive_config_dir: /home/stream-admin/.config/rclone/
-streambox_rclone_gdrive_sa_cred_filename: obs-service-account.json
-streambox_rclone_gdrive_mount_point: /mnt/kqsfl_stream/obs_backups
+streambox_rclone_config_dir: /home/stream-admin/.config/rclone/
+streambox_rclone_remote_root_folder: /
+streambox_rclone_mount_point: /mnt/kqsfl_stream/obs_backups
 
 streambox_obs_studio_version: 29.1.3-0obsproject1~focal
 
-streambox_ngrok_public_url: intent-serval-noble.ngrok-free.app
+streambox_ngrok_public_url: "{{ undef() }}" # Must set before role execution
 
 streambox_kasmvnc_version: 1.3.3
 
 streambox_ttyd_port: 8082
 
 streambox_refresh_vm_isos: false
+
+streambox_twitch_api_token: "{{ undef() }}" # Must set before role execution
+streambox_github_token: "{{ undef() }}" # Must set before role execution
+
+
+streambox_os_admin_password: "{{ undef() }}" # Must set before role execution
+streambox_os_user_password: "{{ undef() }}" # Must set before role execution
+
+streambox_ngrok_token: "{{ undef() }}" # Must set before role execution
+
+streambox_vnc_password: "{{ undef() }}" # Must set before role execution
+streambox_vnc_password: "{{ undef() }}" # Must set before role execution
