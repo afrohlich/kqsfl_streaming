@@ -1,0 +1,184 @@
+- name: streambox configure hypervisor
+  block:
+    - name: streambox install vm management tools
+      ansible.builtin.apt:
+        pkg:
+          - bridge-utils
+          - cpu-checker
+          - libvirt-clients
+          - libvirt-daemon-system
+          - qemu-kvm
+          - virt-manager
+          - cloud-image-utils
+          - virtiofsd
+
+    - name: create vm data directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+      loop:
+        - /usr/local/share/vm-configs
+        - /usr/local/share/vm-configs/isos
+        - /usr/local/share/vm-configs/templates
+
+    - name: create obs-server directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+      loop:
+        - /usr/local/share/vm-configs/templates/obs-server  #  Directory for vm configurations
+        - /var/lib/libvirt/images/obs  # Directory for virtual disks
+        - /var/opt/obs-server/  # Directory for shared filesystem with vm
+
+- name: streambox configure libvirt nets
+  block:
+    - name: streambox get network info
+      community.libvirt.virt_net:
+        command: info
+        network: streambox
+      register: libvirt_networks
+      tags: configure_libvirt_nets
+
+    - name: output libvirt-network info
+      debug:
+        var: libvirt_networks.networks.streambox
+      tags: configure_libvirt_nets
+
+    - name: get network status
+      when: libvirt_networks.networks.streambox is defined
+      community.libvirt.virt_net:
+        command: status
+        network: streambox
+      register: streambox_vm_network_status
+      tags: configure_libvirt_nets
+
+    - name: output streambox_vm_network_status
+      when: libvirt_networks.networks.streambox is defined
+      debug:
+        var: streambox_vm_network_status
+      tags: configure_libvirt_nets
+
+    - name: streambox create vm network
+      community.libvirt.virt_net:
+        command: define
+        network: streambox
+        xml: '{{ lookup("template", "obs-libvirt-network.xml.j2") }}'
+      tags: configure_libvirt_nets
+
+    - name: enable autostart for vm network
+      community.libvirt.virt_net:
+        network: streambox
+        autostart: true
+      tags: configure_libvirt_nets
+
+    - name: enable vm network
+      community.libvirt.virt_net:
+        command: start
+        network: streambox
+      tags: configure_libvirt_nets
+
+    - name: add obs vm static ip
+      community.libvirt.virt_net:
+        command: modify
+        name: streambox
+        xml: "<host mac='52:54:00:05:05:52' name='obs' ip='192.168.120.101'/>"
+      tags: configure_libvirt_nets
+
+- name: streambox build and start obs vm
+  block:
+    - name: copy obs server configs
+      template:
+        src: "{{item}}.j2"
+        dest: /usr/local/share/vm-configs/templates/obs-server/{{item}}
+      loop:
+        - user-data
+        - meta-data
+      tags: configure_obs_vm
+
+    - name: streambox get ubuntu checksumfile
+      get_url:
+        # Multiple checksums in one file - https://github.com/ansible/ansible/issues/48790
+        url: https://releases.ubuntu.com/24.04.3/SHA256SUMS
+        dest: /usr/local/share/vm-configs/isos/ubuntu-iso-checksums
+      tags: configure_obs_vm
+
+    - name: streambox read checksums to variable
+      ansible.builtin.slurp:
+        src: /usr/local/share/vm-configs/isos/ubuntu-iso-checksums
+      register: ubuntu_checksum_data
+
+    - name: download base os for obs-server vm
+      get_url:
+        url: https://releases.ubuntu.com/noble/ubuntu-24.04.3-live-server-amd64.iso
+        dest: /usr/local/share/vm-configs/isos/ubuntu-24.04.iso
+        checksum: 'sha256:{{ ubuntu_server_24_04_checksum }}'
+      vars:
+        ubuntu_checksum_lines: "{{ ubuntu_checksum_data['content'] | b64decode }}"
+        ubuntu_checksums: '{{ ubuntu_checksum_lines.splitlines() | select("match", ".*ubuntu-24.04.3-live-server-amd64.iso$") | list }}'
+        ubuntu_server_24_04_checksum: "{{ ubuntu_checksums[0].split()[0] }}"
+      tags: configure_obs_vm
+
+    - name: streambox serve cloud-init files over http
+      ansible.builtin.shell:
+        chdir: /usr/local/share/vm-configs/templates/obs-server/
+        cmd: |
+          nohup python3 -m http.server 3003 >/dev/null 2>&1 &
+          echo $!
+      args:
+        chdir: "{{ http_root }}"
+      register: http_pid
+      changed_when: http_pid.stdout | length > 0
+      tags: configure_obs_vm
+
+
+    - name: streambox install obs server
+      ansible.builtin.shell: |
+        virt-install \
+        --wait 7 \
+        --name=obs \
+        --description='OBS Server' \
+        --vcpus=2 --ram=4096 \
+        --disk path=/var/lib/libvirt/images/obs/obs.qcow2,size=32 \
+        --location '/usr/local/share/vm-configs/isos/ubuntu-24.04.iso',initrd=casper/initrd,kernel=casper/vmlinuz \
+        --extra-args="ip=dhcp autoinstall ds=nocloud-net;s=http://192.168.120.1:3003/" \
+        --network network=streambox,mac=52:54:00:05:05:52 \
+        --destroy-on-exit \
+        --autostart
+      tags: configure_obs_vm
+
+      # The autoinstall process can be difficult to monitor
+      # The vm display can be attached to at 5900
+      # The ansible manager use ssh -L 5900:localhost:5900 "{{streambox_admin_user}}"@streambox.lan
+      # Then connect using remote desktop viewer via the SPICE protocol on localhost:5900
+
+    - name: streambox set static ip for vm
+      ansible.builtin.shell: |
+        virt-xml obs --edit --memorybacking source.type=memfd,access.mode=shared,
+      tags: configure_obs_vm
+
+    - name: streambox configure filesystem passthrough
+      ansible.builtin.shell: |
+        virt-xml obs --add-device --filesystem accessmode=passthrough,driver.type=virtiofs,driver.queue=1024,source.dir=/var/opt/obs-server/,target.dir=obs_data,type=mount
+      tags: configure_obs_vm
+
+    - name: streambox configure pci passthrough
+      ansible.builtin.shell: >
+        lspci | grep -i usb | sed 's/ .*//' | 
+        xargs -I {} sudo bash -c 'virt-xml obs --add-device --hostdev {} || true'
+      tags: configure_obs_vm
+
+    - name: streambox create vm snapshot from stopped vm
+      ansible.builtin.shell: |
+        virsh snapshot-create-as --domain obs --name 'inital install'
+      tags: configure_obs_vm
+    
+    - name: streambox start obs vm
+      ansible.builtin.shell:
+        cmd: virsh start obs
+      tags: configure_obs_vm
+
+  always:
+    - name: kill cloud data http.server
+      ansible.builtin.shell: "kill {{ http_pid.stdout | trim }}"
+      when: http_pid is defined and (http_pid.stdout | default('')) | length > 0
+      ignore_errors: true
