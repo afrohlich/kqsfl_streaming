@@ -7,4 +7,10 @@ Description=Mount for {{rclone_mount_point}}
 Type=rclone
 What={{rclone_mount_name}}:{{rclone_mount_subdir}}
 Where={{rclone_mount_point}}
-Options=rw,_netdev,allow_other,args2env,vfs-cache-mode=writes,config={{rclone_config_path}},cache-dir=/var/rclone
+
+Options=\
+rw,uid={{rclone_mount_user}},gid={{rclone_mount_user}},\
+_netdev,allow_other,args2env,\
+vfs-cache-mode=writes,\
+config={{rclone_config_path}},\
+cache-dir=/var/rclone

@@ -1,0 +1,7 @@
+[Unit]
+Description=AutoMount for {{rclone_mount_point}}
+[Automount]
+Where={{rclone_mount_point}}
+TimeoutIdleSec=600
+[Install]
+WantedBy=multi-user.target

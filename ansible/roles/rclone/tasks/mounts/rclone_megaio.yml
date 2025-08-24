@@ -8,19 +8,10 @@
     rclone_mkdir: false
     rclone_config_location: "/etc/streambox/remote-backups/rclone.conf"
     rclone_configs:
-      - name: streambox-remote-backend
+      - name: "{{rclone_mount_name}}"
         properties:
           type: mega
           user: "{{streambox_rclone_mega_user}}"
           pass: "{{streambox_rclone_mega_password}}"
           use_https: true
           description: "connect to mega.io drive"
-    rclone_mounts:
-      - name: obs_backups
-        remote_name: streambox-remote-backend
-        remote_path: "/obs"
-        local_path: "/var/opt/obs-server"
-        local_path_owner: stream-admin
-        local_path_group: stream-admin
-        auto_mount: true
-        extra_args: "--vfs-cache-mode writes"

@@ -19,3 +19,20 @@
 
 - name: rclone configure and mount remote storage
   import_tasks: mounts/rclone_megaio.yml
+
+- name: rclone deploy systemd mount file
+  ansible.builtin.template:
+    src: rclone_systemd_mount.j2
+    dest: /etc/systemd/system/rclone-{{rclone_mount_name}}.mount
+
+- name: rclone deploy systemd automount file
+  ansible.builtin.template:
+    src: rclone_systemd_automount.j2
+    dest: /etc/systemd/system/rclone-{{rclone_mount_name}}.automount
+
+- name: rclone start and enable systemd mount and automount
+  ansible.builtin.systemd:
+    name: "rclone-{{ rclone_mount_name }}.automount"
+    enabled: true
+    state: started
+    daemon_reload: true

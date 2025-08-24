@@ -1,4 +1,4 @@
-#rclone_mount_name:
-#rclone_mount_subdir:
-#rclone_mount_point:
-#rclone_config_path:
+rclone_mount_name: "{{ undef() }}" # Must set before role execution
+rclone_mount_subdir: "/" # Must set before role execution
+rclone_mount_point: "{{ undef() }}" # Must set before role execution
+rclone_config_path: "{{ undef() }}" # Must set before role execution

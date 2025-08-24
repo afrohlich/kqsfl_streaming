@@ -1,0 +1,33 @@
+- name: streambox create admin user
+  ansible.builtin.user:
+    name: "{{streambox_admin_user}}"
+    # home: "/home/{{streambox_admin_user}}/"
+    # create_home: true
+    shell: /bin/bash
+    groups: video,render
+    append: yes
+
+- name: streambox create admin user systemd directory
+  # https://wiki.archlinux.org/title/Systemd/User
+  ansible.builtin.file:
+    path: "/home/{{streambox_admin_user}}/.config/systemd/user/"
+    state: directory
+    owner: "{{streambox_admin_user}}"
+
+- name: streambox create keyring dir
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+        
+- name: streambox install basic management tools
+  ansible.builtin.apt:
+    pkg:
+      - vim
+      - screen
+      - tmux
+      - inotify-tools
+      - dbus-x11
+      - net-tools
+      - python3-lxml
+      - snapd
+    update_cache: true
