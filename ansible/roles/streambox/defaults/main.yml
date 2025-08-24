@@ -6,7 +6,7 @@ streambox_config_dir: /etc/streambox
 streambox_rclone_version: 1.68.1
 streambox_rclone_config_dir: "{{streambox_config_dir}}/remote-backends/"
 streambox_rclone_remote_root_folder: "/obs"
-streambox_rclone_mount_point: /var/opt/obs-server
+streambox_rclone_mount_point: /var/opt/obs_server
 
 streambox_obs_studio_version: 29.1.3-0obsproject1~focal
 

@@ -8,10 +8,14 @@
     rclone_mount_name: "streambox-backend"
     rclone_mount_subdir: "{{streambox_rclone_remote_root_folder}}"
     rclone_mount_point: "{{streambox_rclone_mount_point}}"
-    rclone_config_path: "{{streambox_rclone_config_dir}}"
+    rclone_config_dir: "{{streambox_rclone_config_dir}}"
+    rclone_mount_user: "{{streambox_admin_user}}"
 
 - name: streambox configure libvirt hypervisor for obs server
   import_tasks: components/obs-libvirt.yml
 
 - name: streambox configure docker compose stack
   import_tasks: components/docker-stack.yml
+
+- name: streambox configure remote access
+  import_tasks: components/remote-web-access.yml

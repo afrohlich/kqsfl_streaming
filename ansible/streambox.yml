@@ -10,7 +10,6 @@
     - "{{ lookup('env', 'HOME') }}/streambox_credentials.yml"
   roles:
     - name: streambox
-    - name: ngrok
 
 - name: configure obs server
   hosts: obs-server

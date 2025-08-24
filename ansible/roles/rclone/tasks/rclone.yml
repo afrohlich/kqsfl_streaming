@@ -11,6 +11,13 @@
     rclone_version: "{{streambox_rclone_version}}"
     # Versions listed at https://github.com/rclone/rclone/releases
 
+- name: rclone enable mount helper
+  ansible.builtin.file:
+    src: /usr/local/bin/rclone
+    dest: /sbin/mount.rclone
+    state: link
+    force: true
+
 - name: rclone create mount directory
   file:
     path: "{{streambox_rclone_mount_point}}"
@@ -20,19 +27,27 @@
 - name: rclone configure and mount remote storage
   import_tasks: mounts/rclone_megaio.yml
 
-- name: rclone deploy systemd mount file
-  ansible.builtin.template:
-    src: rclone_systemd_mount.j2
-    dest: /etc/systemd/system/rclone-{{rclone_mount_name}}.mount
+- name: rclone configure mount point
+  block:
+    - name: rclone get escaped mount file name
+      ansible.builtin.shell:
+        systemd-escape -p {{rclone_mount_point}}
+      register:
+        rclone_name_escape_cmd
 
-- name: rclone deploy systemd automount file
-  ansible.builtin.template:
-    src: rclone_systemd_automount.j2
-    dest: /etc/systemd/system/rclone-{{rclone_mount_name}}.automount
+    - name: rclone deploy systemd mount file
+      ansible.builtin.template:
+        src: rclone_systemd_mount.j2
+        dest: /etc/systemd/system/{{ rclone_name_escape_cmd.stdout }}.mount
 
-- name: rclone start and enable systemd mount and automount
-  ansible.builtin.systemd:
-    name: "rclone-{{ rclone_mount_name }}.automount"
-    enabled: true
-    state: started
-    daemon_reload: true
+    - name: rclone deploy systemd automount file
+      ansible.builtin.template:
+        src: rclone_systemd_automount.j2
+        dest: /etc/systemd/system/{{ rclone_name_escape_cmd.stdout }}.automount
+
+    - name: rclone start and enable systemd mount and automount
+      ansible.builtin.systemd:
+        name: "{{ rclone_name_escape_cmd.stdout }}.automount"
+        enabled: true
+        state: started
+        daemon_reload: true

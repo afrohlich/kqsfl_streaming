@@ -6,7 +6,7 @@
       OWNER: stream-admin
       GROUP: stream-admin
     rclone_mkdir: false
-    rclone_config_location: "/etc/streambox/remote-backups/rclone.conf"
+    rclone_config_location: "{{rclone_config_dir}}/rclone.conf"
     rclone_configs:
       - name: "{{rclone_mount_name}}"
         properties:

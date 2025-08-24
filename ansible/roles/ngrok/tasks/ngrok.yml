@@ -10,9 +10,9 @@
 - name: ngrok install via apt
   block:
     - name: ngrok add an apt signing key
-      ansible.builtin.apt_key:
-        url: /etc/apt/trusted.gpg.d/ngrok.asc
-        state: present
+      ansible.builtin.get_url:
+        url: https://ngrok-agent.s3.amazonaws.com/ngrok.asc
+        dest: /etc/apt/trusted.gpg.d/ngrok.asc
 
     - name: ngrok add repository
       ansible.builtin.apt_repository:
