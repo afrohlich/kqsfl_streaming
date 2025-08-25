@@ -21,8 +21,8 @@ http://localhost:80, https://streambox.lan:443 {
     reverse_proxy /host-term/* http://host.docker.internal:8082
   }
 
-  redir /obs-vnc /obs-vnc/vnc.html?path=/obs-vnc/websockify
-  redir /obs-vnc/ /obs-vnc/vnc.html?path=/obs-vnc/websockify
+  @base-obs-vnc-path path /obs-vnc /obs-vnc/
+  redir @base-obs-vnc-path /obs-vnc/vnc.html?path=/obs-vnc/websockify
   handle /obs-vnc/* {
     uri query path /obs-vnc/websockify
     reverse_proxy https://192.168.120.101:8444 {
