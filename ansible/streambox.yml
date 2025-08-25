@@ -4,7 +4,7 @@
   become: yes
   become_user: root
   vars:
-    streambox_user: stream-admin
+    streambox_user: "{{streambox_admin_user}}"
   vars_files:
     - "{{ lookup('env', 'HOME') }}/streambox_vars.yml"
     - "{{ lookup('env', 'HOME') }}/streambox_credentials.yml"
@@ -19,7 +19,7 @@
     - "{{ lookup('env', 'HOME') }}/streambox_vars.yml"
     - "{{ lookup('env', 'HOME') }}/streambox_credentials.yml"
   vars:
-    obsserver_user: stream-admin
+    obsserver_user: "{{streambox_admin_user}}"
 
   pre_tasks:
     - name: wait for vms
