@@ -158,7 +158,7 @@
 
     - name: streambox configure filesystem passthrough
       ansible.builtin.shell: |
-        virt-xml obs --add-device --filesystem accessmode=passthrough,driver.type=virtiofs,driver.queue=1024,source.dir=/var/opt/obs-server/,target.dir=obs_data,type=mount
+        virt-xml obs --add-device --filesystem accessmode=passthrough,driver.type=virtiofs,driver.queue=1024,source.dir={{streambox_rclone_mount_point}},target.dir=obs_data,type=mount
       tags: configure_obs_vm
 
     - name: streambox configure pci passthrough

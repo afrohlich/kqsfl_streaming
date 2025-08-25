@@ -42,7 +42,7 @@
 - name: ngrok systemd service
   template:
     src: ngrok_systemd_service.j2
-    dest: "/lib/systemd/system/ngrok.service"
+    dest: "/etc/systemd/system/ngrok.service"
   register: setup_ngrok_config
 
 - name: ngrok restart service

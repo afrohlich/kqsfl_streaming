@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 User=ngrok
-ExecStart=/snap/bin/ngrok start --all --config /etc/ngrok/ngrok.yml
+ExecStart=/usr/local/bin/ngrok start --all --config /etc/ngrok/ngrok.yml
 ExecReload=/bin/kill -HUP $MAINPID
 KillMode=process
 IgnoreSIGPIPE=true
