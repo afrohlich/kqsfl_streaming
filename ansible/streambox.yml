@@ -36,6 +36,7 @@
         kasmvnc_user: "{{obsserver_user}}"
         kasmvnc_password: "{{obsserver_vnc_password}}"
         kasmvnc_kiosk_mode: true
+        kasmvnc_uri_prefix: "obs-vnc"
     - name: obs-server
 
   post_tasks:
