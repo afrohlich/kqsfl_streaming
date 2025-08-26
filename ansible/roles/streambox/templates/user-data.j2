@@ -3,9 +3,8 @@ autoinstall:
   version: 1
   identity:
     hostname: obs-server
-    # password=admin
-    password: "$6$q8zTEzukX5cwQBdU$WPoYrUyYgkzRqQLac40nxwy406QqDX2FLctrtxfSgIvpmwR9/n0B3jSZO8euRZP.W2oEf.cOKY2Lei4EvSyJy/"
-    username: stream-admin
+    password: "{{ streambox_obs_default_admin_password | password_hash(hashtype=sha512) }}"
+    username: :streambox_obs_admin_user
   ssh:
     install-server: yes
     allow-pw: yes
