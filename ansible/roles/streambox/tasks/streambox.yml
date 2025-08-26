@@ -1,5 +1,6 @@
 - name: streambox configure base os
   import_tasks: components/base-os.yml
+  tags: streambox_configure_base_os
 
 - name: streambox configure rclone backend for obs data
   import_role:
@@ -13,9 +14,12 @@
 
 - name: streambox configure libvirt hypervisor for obs server
   import_tasks: components/obs-libvirt.yml
+  tags: streambox_configure_libvirt_stack
 
 - name: streambox configure docker compose stack
   import_tasks: components/docker-stack.yml
+  tags: streambox_configure_docker_compose_stack
 
 - name: streambox configure remote access
   import_tasks: components/remote-web-access.yml
+  tags: streambox_configure_remote_access
