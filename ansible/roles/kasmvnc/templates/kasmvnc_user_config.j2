@@ -22,6 +22,7 @@ server:
     headers:
       - Cross-Origin-Embedder-Policy=require-corp
       - Cross-Origin-Opener-Policy=same-origin
+      - path={{kasmvnc_uri_prefix}}/websockify
   auto_shutdown:
     no_user_session_timeout: never
     active_user_session_timeout: never
