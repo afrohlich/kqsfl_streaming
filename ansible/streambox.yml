@@ -56,7 +56,6 @@
         ansible.builtin.command:
           cmd: virsh start obs
  
-      register: obs_vm_snapshot
       ignore_errors: yes
 
     - name: reboot
