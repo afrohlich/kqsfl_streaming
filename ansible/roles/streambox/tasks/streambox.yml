@@ -17,6 +17,21 @@
   import_tasks: components/obs-libvirt.yml
   tags: streambox_configure_libvirt_stack
 
+- name: streambox_configure obs-server
+  when: false  ##  Disabling this for now
+  block:
+    - import_role:
+        name: obs-server
+      when: streambox_single_server is defined and not streambox_single_server
+      delegate_to: obs-server
+      ### This host must be defined in the inventory
+      ### MAKE SURE THE SSH PROXY SETTINGS ARE CORRECTLY SET
+
+    - import_role:
+        name: obs-server
+      when: streambox_single_server is defined and not streambox_single_server
+  tags: streambox_configure_obs_server
+
 - name: streambox configure docker compose stack
   import_tasks: components/docker-stack.yml
   tags: streambox_configure_docker_compose_stack
