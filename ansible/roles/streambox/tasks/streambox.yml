@@ -11,6 +11,7 @@
     rclone_mount_point: "{{streambox_rclone_mount_point}}"
     rclone_config_dir: "{{streambox_rclone_config_dir}}"
     rclone_mount_user: "{{streambox_admin_user}}"
+  tags: streambox_configure_rclone_backend
 
 - name: streambox configure libvirt hypervisor for obs server
   import_tasks: components/obs-libvirt.yml
