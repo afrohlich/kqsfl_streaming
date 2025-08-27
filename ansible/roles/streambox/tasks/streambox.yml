@@ -18,7 +18,7 @@
   tags: streambox_configure_libvirt_stack
 
 - name: streambox_configure obs-server
-  when: false  ##  Disabling this for now
+  when: streambox_single_server  ##  Disabling this for now
   block:
     - import_role:
         name: obs-server

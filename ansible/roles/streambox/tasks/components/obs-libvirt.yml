@@ -148,7 +148,7 @@
 
       # The autoinstall process can be difficult to monitor
       # The vm display can be attached to at 5900
-      # The ansible manager use ssh -L 5900:localhost:5900 "{{streambox_admin_user}}"@streambox.lan
+      # The ansible manager use ssh -L 5900:localhost:5900 {{streambox_admin_user}}@streambox.lan
       # Then connect using remote desktop viewer via the SPICE protocol on localhost:5900
 
     - name: streambox set static ip for vm
