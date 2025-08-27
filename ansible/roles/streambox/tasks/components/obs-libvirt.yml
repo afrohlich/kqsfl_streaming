@@ -169,7 +169,7 @@
 
     - name: streambox create vm snapshot from stopped vm
       ansible.builtin.shell: |
-        virsh snapshot-create-as --domain obs --name 'inital install'
+        virsh snapshot-create-as --domain obs --name 'initial install'
       tags: configure_obs_vm
     
     - name: streambox start obs vm
