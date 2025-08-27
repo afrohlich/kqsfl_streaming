@@ -7,7 +7,7 @@ http://localhost:80, https://streambox.lan:443 {
   log
 
   basic_auth {
-    {$kasmvnc_user} {$kasmvnc_hashed_password}
+    {$streambox_web_user} {$streambox_web_user_hashed_password}
   }
 
   redir /restreamer /restreamer/

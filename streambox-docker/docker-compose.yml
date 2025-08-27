@@ -15,6 +15,8 @@ services:
       - streaming_network
     extra_hosts:
       - "host.docker.internal:172.20.0.1"
+    env_file:
+      - ./web-server/.env
 
   restreamer:
     image: datarhei/restreamer:latest

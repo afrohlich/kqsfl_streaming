@@ -1,0 +1,1 @@
+single_user_kiosk_hostname: "{{ undef() }}"
