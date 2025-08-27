@@ -30,7 +30,8 @@
   roles:
     - name: single-user-kiosk
       vars:
-        primary_user: "{{obsserver_user}}"
+        single_user_kiosk_hostname: obs-server
+        single_user_kiosk_primary_user: "{{obsserver_user}}"
     - name: kasmvnc
       vars:
         kasmvnc_user: "{{obsserver_user}}"

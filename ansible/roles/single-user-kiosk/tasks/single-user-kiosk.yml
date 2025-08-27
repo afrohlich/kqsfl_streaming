@@ -1,20 +1,21 @@
 - name: configure base os
   block:
   - name: set a hostname
+    when: single_user_kiosk_hostname is defined
     ansible.builtin.hostname:
-      name: obs-server
+      name: "{{single_user_kiosk_hostname}}"
       use: systemd
 
   - name: create primary user
     ansible.builtin.user:
-      name: "{{primary_user}}"
+      name: "{{single_user_kiosk_primary_user}}"
       shell: /bin/bash
       groups: video,render
       append: yes
 
   - name: Add SSH public key to remote host
     ansible.posix.authorized_key:
-      user: "{{primary_user}}"
+      user: "{{single_user_kiosk_primary_user}}"
       state: present
       key: "{{ lookup('file', lookup('env', 'HOME') + '/.ssh/streambox-admin.pub') }}"
     
