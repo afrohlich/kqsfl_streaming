@@ -56,5 +56,3 @@
       community.docker.docker_compose_v2:
         project_src: /etc/docker/compose/streambox/
         build: always
-      environment:
-        KASM_VNC_PASSWORD: "{{streambox_vnc_password}}"
