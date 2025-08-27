@@ -1,6 +1,3 @@
 obsserver_obs_studio_version: 31.1.2-0obsproject1~noble
-obsserver_kasmvnc_version: 1.3.3
 obsserver_kiosk_mode: true
-kasmvnc_uri_prefix: /obs-vnc/
-# obsserver_user:
-# obsserver_vnc_password:
+obsserver_user: "{{ undef() }}"
