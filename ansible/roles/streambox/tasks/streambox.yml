@@ -22,6 +22,8 @@
   block:
     - import_role:
         name: obs-server
+      vars:
+        obsserver_is_virtualized: true
       when: streambox_single_server is defined and not streambox_single_server
       delegate_to: obs-server
       ### This host must be defined in the inventory

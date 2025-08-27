@@ -2,6 +2,11 @@
   # https://obsproject.com/kb/linux-installation
   # https://github.com/pschmitt/obs-cli
   block:
+    - name: obsserver install essential packages
+      ansible.builtin.apt:
+        pkg:
+          - pipx
+
     - name: obs studio add apt repo
       ansible.builtin.apt_repository:
         repo: ppa:obsproject/obs-studio
@@ -23,19 +28,38 @@
         dest: "/home/{{obsserver_user}}/.config/autostart/obs.desktop"
 
     - name: obs studio cli install
-      when: false
       community.general.pipx:
         name: obs-cli
         include_injected: false
         state: install
         python: 3.12
 
- #   - name: obs install websocket plugin
- #   This is no longer necessary on the latest versions of obs
+    - name: deploy management scripts
+      block:
+        - name: obsserver copy management scripts
+          ansible.builtin.copy:
+            src: scripts/
+            dest: /home/{{obsserver_user}}/bin/
 
-#    - name: start obs on boot
-#      block:
-#        - name: 
+        - name: obsserver create crontab jobs to start server
+          become: true
+          become_user: "{{obsserver_user}}"
+          ansible.builtin.cron:
+            name: yum autoupdate
+            weekday: "1,4"
+            minute: "0"
+            hour: "21"
+            job: "obs-cli stream start"
+
+        - name: obsserver create crontab jobs to stop server
+          become: true
+          become_user: "{{obsserver_user}}"
+          ansible.builtin.cron:
+            name: yum autoupdate
+            weekday: "1,4"
+            minute: "0"
+            hour: "21"
+            job: "obs-cli stream stop"
 
     - name: obs studio shared data directory
       block:
@@ -45,6 +69,7 @@
             state: directory
 
         - name: obs studio mount shared data directory
+          when: obsserver_is_virtualized
           ansible.posix.mount:
             path: /var/opt/obs-server/
             src: obs_data
