@@ -137,7 +137,7 @@
         --wait 7 \
         --name=obs \
         --description='OBS Server' \
-        --vcpus=2 --ram=4096 \
+        --vcpus=8 --ram=8192 \
         --disk path=/var/lib/libvirt/images/obs/obs.qcow2,size=32 \
         --location '/usr/local/share/vm-configs/isos/ubuntu-24.04.iso',initrd=casper/initrd,kernel=casper/vmlinuz \
         --extra-args="ip=dhcp autoinstall ds=nocloud-net;s=http://192.168.120.1:3003/" \

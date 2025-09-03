@@ -1,3 +1,4 @@
 obsserver_obs_studio_version: 31.1.2-0obsproject1~noble
 obsserver_user: "{{ ansible_user }}"
 obsserver_kiosk_mode: true
+obsserver_is_virtualized: false

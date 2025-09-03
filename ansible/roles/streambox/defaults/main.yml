@@ -1,6 +1,8 @@
 streambox_admin_user: stream-admin
 streambox_admin_password: "{{ undef() }}" # Must set before role execution
 
+streambox_timezone: 'America/New_York'
+
 streambox_obs_admin_user: "{{streambox_admin_user}}"
 streambox_obs_admin_password: admin
 

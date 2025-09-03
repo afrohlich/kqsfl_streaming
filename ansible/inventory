@@ -1,5 +1,5 @@
 ---
-boxes:
+servers:
   hosts:
     streambox:
       # configure these targets on the router prior to running
@@ -8,7 +8,7 @@ boxes:
       ansible_password: streambox
       ansible_become_password: "{{ ansible_password }}"
       
-vm:
+vms:
   hosts:
     # Hosts are VMs on the streambox
     # IP addresses will be statically assigned

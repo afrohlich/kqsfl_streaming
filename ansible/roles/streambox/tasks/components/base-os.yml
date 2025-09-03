@@ -31,3 +31,7 @@
       - python3-lxml
       - snapd
     update_cache: true
+
+- name: streambox set timezone
+  community.general.timezone:
+    name: "{{streambox_timezone}}"

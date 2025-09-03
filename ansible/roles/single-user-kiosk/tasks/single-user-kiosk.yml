@@ -31,6 +31,8 @@
       src: no-screen-lock
       dest: /etc/apt/preferences.d/no-screen-lock
 
+  # ToDO make display settings more robust
+  # https://github.com/afrohlich/kqsfl_streaming/issues/1
   - name: disable screen blank settings
     ansible.builtin.blockinfile:
       path: /home/stream-admin/.profile 
