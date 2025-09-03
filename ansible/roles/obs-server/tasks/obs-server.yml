@@ -2,6 +2,10 @@
   # https://obsproject.com/kb/linux-installation
   # https://github.com/pschmitt/obs-cli
   block:
+    - name: obsserver set timezone
+      community.general.timezone:
+        name: "{{obsserver_timezone}}"
+
     - name: obsserver install essential packages
       ansible.builtin.apt:
         pkg:
