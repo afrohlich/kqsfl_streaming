@@ -33,7 +33,7 @@
 
   # ToDO make display settings more robust
   # https://github.com/afrohlich/kqsfl_streaming/issues/1
-  - name: disable screen blank settings
+  - name: disable screen blank settings xset
     ansible.builtin.blockinfile:
       path: /home/stream-admin/.profile 
       prepend_newline: true
@@ -42,6 +42,19 @@
         xset -display :0 s off && xset -display :0 s noblank
         xset -display :0 -dpms
         xset -display :0 q
+
+  - name: disable screen blank settings xfconfquery
+    ansible.builtin.command:
+      cmd: |
+        # https://sources.debian.org/src/xfce4-power-manager/1.6.1-1/common/xfpm-config.h
+        xfconf-query -c xfce4-power-manager --create --property \
+          /xfce4-power-manager/dpms-enabled --type bool --set false
+        xfconf-query -c xfce4-power-manager --create --property \
+          /xfce4-power-manager/dpms-on-ac-off --type int --set 0
+        xfconf-query -c xfce4-power-manager --create --property \
+          /xfce4-power-manager/dpms-on-ac-sleep --type int --set 0
+        xfconf-query -c xfce4-power-manager --create --property \
+          /xfce4-power-manager/blank-on-ac --type int --set 0
 
   - name: install desktop environment
     ansible.builtin.apt:
