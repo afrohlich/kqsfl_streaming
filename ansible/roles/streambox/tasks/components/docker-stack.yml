@@ -48,6 +48,18 @@
         src: streambox-docker/
         dest: /etc/docker/compose/streambox
 
+    - name: streambox deploy docker stack environment variables
+      block:
+        - name: streambox deploy docker stack environment variables
+          ansible.builtin.template:
+            src: streambox-docker/streambox-env.yml
+            dest: /etc/docker/compose/streambox/.env
+            mode: '0644'
+            owner: "{{streambox_admin_user}}"
+            group: "{{streambox_admin_user}}"
+            backup: yes
+            validate: 'docker compose config -q'
+
     - name: streambox build and download docker images
       community.docker.docker_compose_v2_pull:
         project_src: /etc/docker/compose/streambox/

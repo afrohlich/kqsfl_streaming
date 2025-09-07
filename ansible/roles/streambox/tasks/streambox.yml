@@ -1,3 +1,11 @@
+- name: streambox config directory
+  ansible.builtin.file:
+    path: "{{streambox_config_dir}}"
+    state: directory
+    mode: '0755'
+    owner: "{{streambox_admin_user}}"
+    group: "{{streambox_admin_user}}"
+
 - name: streambox configure base os
   import_tasks: components/base-os.yml
   tags: streambox_configure_base_os
