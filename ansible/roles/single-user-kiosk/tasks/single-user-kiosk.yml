@@ -56,6 +56,11 @@
         xfconf-query -c xfce4-power-manager --create --property \
           /xfce4-power-manager/blank-on-ac --type int --set 0
 
+  - name: disable screen blank settings xorg
+    ansible.builtin.copy:
+      src: 10-disable-screen-blank.conf
+      dest: /etc/X11/xorg.conf.d/10-disable-screen-blank.conf
+
   - name: install desktop environment
     ansible.builtin.apt:
       pkg:
