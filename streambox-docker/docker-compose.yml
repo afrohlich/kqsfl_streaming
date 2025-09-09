@@ -77,7 +77,8 @@ services:
       - "172.20.0.1:3000:3000"
     volumes:
       - grafana_data:/var/lib/grafana
-      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/conf/provisioning:/etc/grafana/provisioning
+      #- ./grafana/conf/grafana.ini:/etc/grafana/grafana.ini
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=changeme
@@ -99,6 +100,24 @@ services:
       - ./loki/config.yaml:/etc/loki/config.yaml
       - loki_data:/loki
     command: -config.file=/etc/loki/config.yaml
+    networks:
+      - streaming_network
+    extra_hosts:
+      - "host.docker.internal:172.20.0.1"
+
+  alloy:
+    image: grafana/alloy:v1.7.5
+    container_name: alloy
+    ports:
+      - "172.20.0.1:12345:12345"
+      - "172.20.0.1:4317:4317"
+      - "172.20.0.1:4318:4318"
+    volumes:
+      - ./alloy/:/etc/alloy/
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: run --server.http.listen-addr=172.20.0.1:12345 --storage.path=/var/lib/alloy/data /etc/alloy/config
+    depends_on:
+      - loki
     networks:
       - streaming_network
     extra_hosts:

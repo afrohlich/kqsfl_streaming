@@ -47,12 +47,13 @@
       ansible.builtin.copy:
         src: streambox-docker/
         dest: /etc/docker/compose/streambox
+      tags: streambox_deploy_docker_compose_configs
 
     - name: streambox deploy docker stack environment variables
       block:
         - name: streambox deploy docker stack environment variables
           ansible.builtin.template:
-            src: streambox-docker/streambox-env.yml
+            src: streambox.env.j2
             dest: /etc/docker/compose/streambox/.env
             mode: '0644'
             owner: "{{streambox_admin_user}}"
