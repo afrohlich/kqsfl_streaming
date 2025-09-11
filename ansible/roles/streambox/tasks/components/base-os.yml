@@ -28,6 +28,10 @@
       - inotify-tools
       - dbus-x11
       - net-tools
+      - python3
+      - python3-pip
+      - python3-setuptools
+      - python3-venv
       - python3-lxml
       - snapd
     update_cache: true

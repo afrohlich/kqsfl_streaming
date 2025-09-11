@@ -3,10 +3,13 @@ autoinstall:
   version: 1
   identity:
     hostname: obs-server
-    password: "{{ streambox_obs_default_admin_password | password_hash(hashtype=sha512) }}"
-    username: :streambox_obs_admin_user
+    password: "{{ streambox_obs_admin_password | password_hash(hashtype='sha512') }}"
+    username: {{streambox_obs_admin_user}}
   ssh:
     install-server: yes
     allow-pw: yes
+    authorized_keys:
+      - "{{streambox_obs_admin_user_pubkey}}"
   late-commands:
-    - touch /my-cloud-init-done
+    - curtin in-target -- echo "{{streambox_obs_admin_user}} ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/ansible-init
+    - curtin in-target -- touch /my-cloud-init-done

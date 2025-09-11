@@ -1,82 +1,83 @@
-- name: obsserver obs studio setup
-  # https://obsproject.com/kb/linux-installation
-  # https://github.com/pschmitt/obs-cli
+- name: obsserver set timezone
+  community.general.timezone:
+    name: "{{obsserver_timezone}}"
+
+- name: obsserver install essential apt packages
+  ansible.builtin.apt:
+    pkg:
+      - usbtop
+
+- name: obsserver install essential pip packages
+  ansible.builtin.pip:
+    extra_args: "--break-system-packages"
+    name:
+      - pipx
+
+- name: obs studio add apt repo
+  ansible.builtin.apt_repository:
+    repo: ppa:obsproject/obs-studio
+
+- name: obs studio install
+  ansible.builtin.apt:
+    update_cache: yes
+    name: "obs-studio={{obsserver_obs_studio_version}}"
+    # versions: https://launchpad.net/~obsproject/+archive/ubuntu/obs-studio
+
+- name: obs studio create autostart directory
+  ansible.builtin.file:
+    state: directory
+    dest: "/home/{{obsserver_user}}/.config/autostart/"
+
+- name: obs studio autostart
+  ansible.builtin.copy:
+    src: obs.desktop
+    dest: "/home/{{obsserver_user}}/.config/autostart/obs.desktop"
+
+- name: obs studio cli install
+  community.general.pipx:
+    name: obs-cli
+    global: true
+    include_injected: false
+    state: install
+
+- name: deploy management scripts
   block:
-    - name: obsserver set timezone
-      community.general.timezone:
-        name: "{{obsserver_timezone}}"
-
-    - name: obsserver install essential packages
-      ansible.builtin.apt:
-        pkg:
-          - pipx
-          - usbtop
-
-    - name: obs studio add apt repo
-      ansible.builtin.apt_repository:
-        repo: ppa:obsproject/obs-studio
-
-    - name: obs studio install
-      ansible.builtin.apt:
-        update_cache: yes
-        name: "obs-studio={{obsserver_obs_studio_version}}"
-        # versions: https://launchpad.net/~obsproject/+archive/ubuntu/obs-studio
-
-    - name: obs studio create autostart directory
-      ansible.builtin.file:
-        state: directory
-        dest: "/home/{{obsserver_user}}/.config/autostart/"
-
-    - name: obs studio autostart
+    - name: obsserver copy management scripts
       ansible.builtin.copy:
-        src: obs.desktop
-        dest: "/home/{{obsserver_user}}/.config/autostart/obs.desktop"
+        src: scripts/
+        dest: /home/{{obsserver_user}}/bin/
 
-    - name: obs studio cli install
-      community.general.pipx:
-        name: obs-cli
-        include_injected: false
-        state: install
-        python: 3.12
+    - name: obsserver create crontab jobs to start server
+      become: true
+      become_user: "{{obsserver_user}}"
+      ansible.builtin.cron:
+        name: yum autoupdate
+        weekday: "1,4"
+        minute: "0"
+        hour: "21"
+        job: "obs-cli stream start"
 
-    - name: deploy management scripts
-      block:
-        - name: obsserver copy management scripts
-          ansible.builtin.copy:
-            src: scripts/
-            dest: /home/{{obsserver_user}}/bin/
+    - name: obsserver create crontab jobs to stop server
+      become: true
+      become_user: "{{obsserver_user}}"
+      ansible.builtin.cron:
+        name: yum autoupdate
+        weekday: "1,4"
+        minute: "0"
+        hour: "21"
+        job: "obs-cli stream stop"
 
-        - name: obsserver create crontab jobs to start server
-          become: true
-          become_user: "{{obsserver_user}}"
-          ansible.builtin.cron:
-            name: yum autoupdate
-            weekday: "1,4"
-            minute: "0"
-            hour: "21"
-            job: "obs-cli stream start"
+- name: obs studio shared data directory
+  block:
+    - name: obs studio create data directory mount point
+      ansible.builtin.file:
+        path: /var/opt/obs-server/
+        state: directory
 
-        - name: obsserver create crontab jobs to stop server
-          become: true
-          become_user: "{{obsserver_user}}"
-          ansible.builtin.cron:
-            name: yum autoupdate
-            weekday: "1,4"
-            minute: "0"
-            hour: "21"
-            job: "obs-cli stream stop"
-
-    - name: obs studio shared data directory
-      block:
-        - name: obs studio create data directory mount point
-          ansible.builtin.file:
-            path: /var/opt/obs-server/
-            state: directory
-
-        - name: obs studio mount shared data directory
-          when: obsserver_is_virtualized
-          ansible.posix.mount:
-            path: /var/opt/obs-server/
-            src: obs_data
-            fstype: virtiofs
-            state: present      
+    - name: obs studio mount shared data directory
+      when: obsserver_is_virtualized
+      ansible.posix.mount:
+        path: /var/opt/obs-server/
+        src: obs_data
+        fstype: virtiofs
+        state: present      

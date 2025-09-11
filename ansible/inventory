@@ -5,16 +5,17 @@ servers:
       # configure these targets on the router prior to running
       ansible_host: streambox.lan
       ansible_user: stream-admin
-      ansible_password: streambox
-      ansible_become_password: "{{ ansible_password }}"
-      
+      # ansible_password: streambox
+      # ansible_become_password: "{{ ansible_password }}"
+
 vms:
   hosts:
     # Hosts are VMs on the streambox
     # IP addresses will be statically assigned
     obs-server:
-      ansible_host: 192.168.120.101
+      ansible_host: streambox.lan
+      # ansible_host: 192.168.120.101
       ansible_user: stream-admin
-      ansible_password: admin
-      ansible_become_password: "{{ ansible_password }}"
+      # ansible_password: admin
+      # ansible_become_password: "{{ ansible_password }}"
       ansible_ssh_common_args: -o StrictHostKeyChecking=no -o ProxyCommand="ssh -p 22 -W %h:%p stream-admin@streambox.lan"

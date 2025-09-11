@@ -1,8 +1,0 @@
-- hosts: all
-  become: yes
-  become_user: root
-  roles:
-    - name: single-user-kiosk
-      var:
-        single_user_kiosk_primary_user: "{{streambox_admin_user}}"
-    - name: streambox

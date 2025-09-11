@@ -1,39 +1,62 @@
-- name: configure base os
+- name: single-user-kiosk configure base os
   block:
-  - name: set a hostname
+  - name: single-user-kiosk set hostname
     when: single_user_kiosk_hostname is defined
     ansible.builtin.hostname:
       name: "{{single_user_kiosk_hostname}}"
       use: systemd
 
-  - name: create primary user
+  - name: single-user-kiosk create primary user
     ansible.builtin.user:
       name: "{{single_user_kiosk_primary_user}}"
       shell: /bin/bash
       groups: video,render
       append: yes
 
-  - name: Add SSH public key to remote host
+  - name: single-user-kiosk add ssh public key
     ansible.posix.authorized_key:
       user: "{{single_user_kiosk_primary_user}}"
       state: present
       key: "{{ lookup('file', lookup('env', 'HOME') + '/.ssh/streambox-admin.pub') }}"
     
-  - name: configure ssh
+  - name: single-user-kiosk install ssh
     ansible.builtin.apt:
       pkg:
         - openssh-server
 
-- name: configure desktop
+- name: single-user-kiosk configure desktop
   block:
-  - name: disable screensavers packages and screen locks
+  - name: single-user-kiosk disable screensavers packages and locks
     copy:
       src: no-screen-lock
       dest: /etc/apt/preferences.d/no-screen-lock
 
+  - name: single-user-kiosk install desktop environment
+    ansible.builtin.apt:
+      pkg:
+        - xfce4
+        - xfce4-goodies
+        - lightdm
+
+  - name: single-user-kiosk create home bin directory
+    ansible.builtin.file:
+      path: "/home/{{single_user_kiosk_primary_user}}/.local/bin/"
+      state: directory
+      mode: '0755'
+      owner: "{{single_user_kiosk_primary_user}}"
+      group: "{{single_user_kiosk_primary_user}}"
+
+  - name: single-user-kiosk disable screen blank settings xfconfquery
+    become: true
+    become_user: "{{single_user_kiosk_primary_user}}"
+    ansible.builtin.copy:
+      src: xfce4-disable-screen-blank.sh
+      dest: "/home/{{single_user_kiosk_primary_user}}/.local/bin/xfce4-disable-screen-blank.sh"
+      mode: 0755
+
   # ToDO make display settings more robust
   # https://github.com/afrohlich/kqsfl_streaming/issues/1
-  - name: disable screen blank settings xset
+  - name: single-user-kiosk disable screen blank settings xset
     ansible.builtin.blockinfile:
       path: /home/stream-admin/.profile 
       prepend_newline: true
@@ -42,33 +65,20 @@
         xset -display :0 s off && xset -display :0 s noblank
         xset -display :0 -dpms
         xset -display :0 q
+        $HOME/.local/bin/xfce4-disable-screen-blank        
 
-  - name: disable screen blank settings xfconfquery
-    ansible.builtin.command:
-      cmd: |
-        # https://sources.debian.org/src/xfce4-power-manager/1.6.1-1/common/xfpm-config.h
-        xfconf-query -c xfce4-power-manager --create --property \
-          /xfce4-power-manager/dpms-enabled --type bool --set false
-        xfconf-query -c xfce4-power-manager --create --property \
-          /xfce4-power-manager/dpms-on-ac-off --type int --set 0
-        xfconf-query -c xfce4-power-manager --create --property \
-          /xfce4-power-manager/dpms-on-ac-sleep --type int --set 0
-        xfconf-query -c xfce4-power-manager --create --property \
-          /xfce4-power-manager/blank-on-ac --type int --set 0
-
-  - name: disable screen blank settings xorg
+  - name: single-user-kiosk disable screen blank settings xorg
     ansible.builtin.copy:
       src: 10-disable-screen-blank.conf
       dest: /etc/X11/xorg.conf.d/10-disable-screen-blank.conf
 
-  - name: install desktop environment
-    ansible.builtin.apt:
-      pkg:
-        - xfce4
-        - xfce4-goodies
-        - lightdm
-
-- name: auto-login
+- name: single-user-kiosk auto-login
   ansible.builtin.template:
     src: autologin.conf.j2
     dest: /etc/lightdm/lightdm.conf.d/12-autologin.conf
+
+- name: single-user-kiosk install essential tools
+  block:
+    - name: single-user-kiosk install essential tools
+      ansible.builtin.apt:
+        pkg: firefox

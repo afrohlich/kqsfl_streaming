@@ -23,29 +23,55 @@
 
 - name: streambox configure libvirt hypervisor for obs server
   import_tasks: components/obs-libvirt.yml
-  tags: streambox_configure_libvirt_stack
+  when: not streambox_single_server
 
-- name: streambox_configure obs-server
-  when: streambox_single_server  ##  Disabling this for now
+- name: streambox configure obs-server
+  when: false  # disabled for now
   block:
-    - import_role:
+    - name: streambox configure obs desktop environment
+      import_role:
+        name: single-user-kiosk
+      delegate_to: "{{ 'obs-server' if not streambox_single_server else omit }}"
+
+    - name: streambox configure obs-server
+      import_role:
         name: obs-server
       vars:
         obsserver_is_virtualized: true
-      when: streambox_single_server is defined and not streambox_single_server
-      delegate_to: obs-server
-      ### This host must be defined in the inventory
+      delegate_to: "{{ 'obs-server' if not streambox_single_server else omit }}"
+      tags: streambox_configure_obs_server
+      ### 'obs-server' host must be defined in the inventory
       ### MAKE SURE THE SSH PROXY SETTINGS ARE CORRECTLY SET
-
-    - import_role:
-        name: obs-server
-      when: streambox_single_server is defined and not streambox_single_server
-  tags: streambox_configure_obs_server
-
+  
 - name: streambox configure docker compose stack
   import_tasks: components/docker-stack.yml
   tags: streambox_configure_docker_compose_stack
 
-- name: streambox configure remote access
-  import_tasks: components/remote-web-access.yml
+- name: streambox configure ngrok remote web access
+  import_role:
+    name: ngrok
+  vars:
+    url: "{{ngrok_public_url}}"
   tags: streambox_configure_remote_access
+
+- name: streambox remote tty access
+  block:
+    - name: steambox remote tty setup
+      # https://github.com/tsl0922/ttyd
+      block:
+        - name: ttyd install
+          ansible.builtin.snap:
+            name: ttyd
+            classic: true
+
+        - name: ttyd systemd service install
+          ansible.builtin.template:
+            src: ttyd_systemd_root_service.j2
+            dest: /etc/systemd/system/ttyd.service
+
+        - name: ttyd systemd service enable
+          ansible.builtin.systemd:
+            name: ttyd.service
+            enabled: true
+            daemon_reload: true
+            state: restarted

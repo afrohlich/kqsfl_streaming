@@ -59,7 +59,6 @@
             owner: "{{streambox_admin_user}}"
             group: "{{streambox_admin_user}}"
             backup: yes
-            validate: 'docker compose config -q'
 
     - name: streambox build and download docker images
       community.docker.docker_compose_v2_pull:
