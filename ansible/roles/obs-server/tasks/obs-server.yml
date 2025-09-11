@@ -33,6 +33,24 @@
     src: obs.desktop
     dest: "/home/{{obsserver_user}}/.config/autostart/obs.desktop"
 
+- name: obs studio create config directory
+  ansible.builtin.file:
+    state: directory
+    dest: "/home/{{obsserver_user}}/.config/obs-studio/"
+
+- name: obs studio disable intial setup
+  ansible.builtin.file:
+    path: "/home/{{obsserver_user}}/.config/obs-studio/global.ini"
+    owner: "{{obsserver_user}}"
+    group: "{{obsserver_user}}"
+    mode: '0644'
+
+- name: obs studio import configuration
+  block:
+    - name: obs studio import configuration
+      ansible.builtin.debug:
+        msg: "TODO: import an existing obs configuration"
+
 - name: obs studio cli install
   community.general.pipx:
     name: obs-cli
@@ -51,7 +69,7 @@
       become: true
       become_user: "{{obsserver_user}}"
       ansible.builtin.cron:
-        name: yum autoupdate
+        name: start stream
         weekday: "1,4"
         minute: "0"
         hour: "21"
@@ -61,7 +79,7 @@
       become: true
       become_user: "{{obsserver_user}}"
       ansible.builtin.cron:
-        name: yum autoupdate
+        name: stop stream
         weekday: "1,4"
         minute: "0"
         hour: "21"

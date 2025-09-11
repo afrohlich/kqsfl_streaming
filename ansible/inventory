@@ -7,6 +7,7 @@ servers:
       ansible_user: stream-admin
       # ansible_password: streambox
       # ansible_become_password: "{{ ansible_password }}"
+      streambox_single_server: true
 
 vms:
   hosts:

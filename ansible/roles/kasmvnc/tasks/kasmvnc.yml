@@ -14,7 +14,7 @@
       ansible.builtin.shell:
         cmd: |
           mkdir -p /usr/share/kasmvnc/www/{{kasmvnc_uri_prefix}}
-          mv /usr/share/kasmvnc/www/ /usr/share/kasmvnc/www/{{kasmvnc_uri_prefix}} 2>/dev/null || true
+          mv /usr/share/kasmvnc/www/* /usr/share/kasmvnc/www/{{kasmvnc_uri_prefix}} 2>/dev/null || true
         creates: "/usr/share/kasmvnc/www/{{kasmvnc_uri_prefix}}"
 
 - name: kasmvnc add user to ssl-cert group
