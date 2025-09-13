@@ -73,7 +73,7 @@
         weekday: "1,4"
         minute: "0"
         hour: "21"
-        job: "obs-cli stream start"
+        job: "/usr/local/bin/obs-cli stream start"
 
     - name: obsserver create crontab jobs to stop server
       become: true
@@ -83,7 +83,7 @@
         weekday: "1,4"
         minute: "0"
         hour: "21"
-        job: "obs-cli stream stop"
+        job: "/usr/local/bin/obs-cli stream stop"
 
 - name: obs studio shared data directory
   block:
