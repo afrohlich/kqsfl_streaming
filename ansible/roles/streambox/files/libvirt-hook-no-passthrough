@@ -1,0 +1,60 @@
+#!/usr/bin/env python3
+
+# Removes all <hostdev type='pci'> from the domain XML at start-time.
+# Works as a filter: reads XML on stdin, writes modified XML to stdout.
+# /etc/libvirt/hooks/qemu.d/10-strip-pci.py
+
+import sys, os, logging
+from xml.etree import ElementTree as ET
+
+def boot_param_exists(p):
+    try:
+        with open("/proc/cmdline", "r") as f:
+            cmdline_content = f.read()
+        if p in cmdline_content:
+            return True
+    except FileNotFoundError:
+        print("Error: /proc/cmdline not found. This system might not be Linux or the file is inaccessible.")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+
+def strip_pci(xml_str: str) -> str:
+    try:
+        root = ET.fromstring(xml_str)
+    except Exception:
+        # If parsing fails, pass-through unmodified so we don't block the VM.
+        return xml_str
+
+    devices = root.find('devices')
+    if devices is None:
+        return xml_str
+
+    # Remove every <hostdev type="pci"> under <devices>
+    removed = False
+    for hostdev in list(devices.findall('hostdev')):
+        if hostdev.get('type') == 'pci':
+            devices.remove(hostdev)
+            removed = True
+
+    # Output either the modified XML or the original if nothing changed
+    return ET.tostring(root, encoding='unicode') if removed else xml_str
+
+def main():
+    # libvirt calls: /etc/libvirt/hooks/qemu <name> <op> <subop> <extra>
+    no_pci = boot_param_exists('libvirt_no_pci_pass')
+    op = sys.argv[2] if len(sys.argv) > 2 else ''
+    subop = sys.argv[3] if len(sys.argv) > 3 else ''
+
+    xml_in = sys.stdin.read()
+    if not xml_in:
+        return 0
+
+    if no_pci and op in ('prepare', 'start', 'restore', 'migrate') and subop in ('begin', '-'):
+        sys.stdout.write(strip_pci(xml_in))
+    else:
+        sys.stdout.write(xml_in)
+    return 0
+
+if __name__ == '__main__':
+    sys.exit(main())
