@@ -10,6 +10,16 @@
           - qemu-kvm
           - virt-manager
           - cloud-image-utils
+
+    - name: streambox install essential hypervisor dependencies
+      ansible.builtin.apt:
+        pkg:
+          - libspice-server1
+          - qemu-system-modules-spice
+          - libegl1
+          - libegl-mesa0
+          - libgl1
+          - libgbm1
           - virtiofsd
 
     - name: create vm data directories
@@ -130,7 +140,6 @@
       changed_when: http_pid.stdout | length > 0
       tags: configure_obs_vm
 
-
     - name: streambox install obs server
       ansible.builtin.shell: |
         virt-install \
@@ -140,9 +149,10 @@
         --vcpus=8 --ram=8192 \
         --disk path=/var/lib/libvirt/images/obs/obs.qcow2,size=32 \
         --location '/usr/local/share/vm-configs/isos/ubuntu-24.04.iso',initrd=casper/initrd,kernel=casper/vmlinuz \
-        --extra-args="ip=dhcp autoinstall ds=nocloud-net;s=http://192.168.120.1:3003/" \
         --network network=streambox,mac=52:54:00:05:05:52 \
+        --graphics spice,listen=none,gl.enable=yes,gl.rendernode='/dev/dri/renderD128' \
         --destroy-on-exit \
+        --extra-args="ip=dhcp autoinstall ds=nocloud-net;s=http://192.168.120.1:3003/" \
         --autostart
       tags: configure_obs_vm
 
