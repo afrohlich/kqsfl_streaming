@@ -5,6 +5,10 @@
 - name: obsserver install essential apt packages
   ansible.builtin.apt:
     pkg:
+      - python3
+      - python3-pip
+      - python3-setuptools
+      - python3-venv
       - usbtop
 
 - name: obsserver install essential pip packages
@@ -41,6 +45,7 @@
 - name: obs studio disable intial setup
   ansible.builtin.file:
     path: "/home/{{obsserver_user}}/.config/obs-studio/global.ini"
+    state: touch
     owner: "{{obsserver_user}}"
     group: "{{obsserver_user}}"
     mode: '0644'
@@ -81,8 +86,8 @@
       ansible.builtin.cron:
         name: stop stream
         weekday: "1,4"
-        minute: "0"
-        hour: "21"
+        minute: "59"
+        hour: "23"
         job: "/usr/local/bin/obs-cli stream stop"
 
 - name: obs studio shared data directory

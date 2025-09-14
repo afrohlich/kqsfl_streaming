@@ -65,7 +65,7 @@
         xset -display :0 s off && xset -display :0 s noblank
         xset -display :0 -dpms
         xset -display :0 q
-        $HOME/.local/bin/xfce4-disable-screen-blank        
+        $HOME/.local/bin/xfce4-disable-screen-blank.sh
 
   - name: single-user-kiosk disable screen blank settings xorg
     ansible.builtin.copy:

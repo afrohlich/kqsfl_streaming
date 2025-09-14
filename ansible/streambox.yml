@@ -48,22 +48,21 @@
 
     - name: streambox create snapshot of obs-server vm
       delegate_to: streambox01
-      when: streambox_obs_virtualized not defined or streambox_obs_virtualized
-      block:
-      - name: streambox stop obs vm
-        ansible.builtin.command:
-          cmd: virsh destroy obs
-
-      - name: streambox take snapshot
-        ansible.builtin.command:
-          cmd: |
-            virsh snapshot-create-as --domain obs obs-server-snapshot-{{ ansible_date_time.iso8601_basic_short }} --description "Automated snapshot from Ansible - {{ ansible_date_time.iso8601_basic_short }}"
-
-      - name: streambox start obs vm
-        ansible.builtin.command:
-          cmd: virsh start obs
- 
+      when: streambox_obs_virtualized is not defined or streambox_obs_virtualized
       ignore_errors: yes
+      block:
+        - name: streambox stop obs vm
+          ansible.builtin.command:
+            cmd: virsh destroy obs
+
+        - name: streambox take snapshot
+          ansible.builtin.command:
+            cmd: |
+              virsh snapshot-create-as --domain obs obs-server-snapshot-{{ ansible_date_time.iso8601_basic_short }} --description "Automated snapshot from Ansible - {{ ansible_date_time.iso8601_basic_short }}"
+
+        - name: streambox start obs vm
+          ansible.builtin.command:
+            cmd: virsh start obs 
 
     - name: reboot
       ansible.builtin.reboot:

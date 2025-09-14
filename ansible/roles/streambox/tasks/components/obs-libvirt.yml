@@ -96,7 +96,7 @@
 
 - name: streambox build and start obs vm
   block:
-    - name: copy obs server configs
+    - name: streambox copy obs server configs
       template:
         src: "{{item}}.j2"
         dest: /usr/local/share/vm-configs/templates/obs-server/{{item}}
@@ -143,7 +143,7 @@
     - name: streambox create obs server vm
       ansible.builtin.shell: |
         virt-install \
-        --wait 7 \
+        --wait 10 \
         --name=obs \
         --description='OBS Server' \
         --vcpus=8 --ram=8192 \
@@ -190,15 +190,33 @@
 
   rescue:
     - name: remove partially created vm
-      ansible.builtin.shell:
-        cmd: virsh destroy obs || true && virsh undefine obs --remove-all-storage
+      block:
+        - name: streambox error stop partially created vm
+          ansible.builtin.shell:
+            cmd: virsh destroy obs
+          ignore_errors: true
+          tags: configure_obs_vm
+
+        - name: streambox error wait until vm is shut off
+          ansible.builtin.shell: virsh domstate obs
+          register: obs_vm_status
+          until: obs_vm_status.stdout == "shut off"
+          retries: 30
+          delay: 2
+
+        - name: streambox error remove partially created vm
+          ansible.builtin.shell:
+            cmd: virsh undefine obs --remove-all-storage --snapshots-metadata
+          tags: configure_obs_vm
 
     - name: end play
       ansible.builtin.fail:
         msg: The obs vm was unable to start. Aborting.
+      tags: configure_obs_vm
 
   always:
     - name: kill cloud data http.server
       ansible.builtin.shell: "kill {{ http_pid.stdout | trim }}"
       when: http_pid is defined and (http_pid.stdout | default('')) | length > 0
       ignore_errors: true
+      tags: configure_obs_vm
