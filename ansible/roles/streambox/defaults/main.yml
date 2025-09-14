@@ -8,7 +8,7 @@ streambox_obs_admin_user: "{{streambox_admin_user}}"
 streambox_obs_admin_password: admin
 streambox_obs_admin_user_pubkey: "{{ streambox_admin_user_pubkey }}"
 
-streambox_single_server: false
+streambox_obs_virtualized: true
 
 streambox_config_dir: /etc/streambox
 

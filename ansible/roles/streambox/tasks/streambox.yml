@@ -23,7 +23,7 @@
 
 - name: streambox configure libvirt hypervisor for obs server
   import_tasks: components/obs-libvirt.yml
-  when: not streambox_single_server
+  when: streambox_obs_virtualized
 
 - name: streambox configure obs-server
   when: false  # disabled for now
@@ -31,14 +31,14 @@
     - name: streambox configure obs desktop environment
       import_role:
         name: single-user-kiosk
-      delegate_to: "{{ 'obs-server' if not streambox_single_server else omit }}"
+      delegate_to: "{{ 'obs-server' if streambox_obs_virtualized else omit }}"
 
     - name: streambox configure obs-server
       import_role:
         name: obs-server
       vars:
         obsserver_is_virtualized: true
-      delegate_to: "{{ 'obs-server' if not streambox_single_server else omit }}"
+      delegate_to: "{{ 'obs-server' if streambox_obs_virtualized else omit }}"
       tags: streambox_configure_obs_server
       ### 'obs-server' host must be defined in the inventory
       ### MAKE SURE THE SSH PROXY SETTINGS ARE CORRECTLY SET
