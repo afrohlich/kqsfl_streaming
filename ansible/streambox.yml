@@ -48,7 +48,7 @@
 
     - name: streambox create snapshot of obs-server vm
       delegate_to: streambox01
-      when: not streambox_single_server
+      when: streambox_obs_virtualized not defined or streambox_obs_virtualized
       block:
       - name: streambox stop obs vm
         ansible.builtin.command:
