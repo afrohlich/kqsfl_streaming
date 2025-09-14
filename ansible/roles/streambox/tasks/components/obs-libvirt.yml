@@ -140,7 +140,7 @@
       changed_when: http_pid.stdout | length > 0
       tags: configure_obs_vm
 
-    - name: streambox install obs server
+    - name: streambox create obs server vm
       ansible.builtin.shell: |
         virt-install \
         --wait 7 \
@@ -150,7 +150,8 @@
         --disk path=/var/lib/libvirt/images/obs/obs.qcow2,size=32 \
         --location '/usr/local/share/vm-configs/isos/ubuntu-24.04.iso',initrd=casper/initrd,kernel=casper/vmlinuz \
         --network network=streambox,mac=52:54:00:05:05:52 \
-        --graphics spice,listen=none,gl.enable=yes,gl.rendernode='/dev/dri/renderD128' \
+        --video model=virtio,accel3d=yes \
+        --graphics spice,listen=socket,gl.enable=yes,gl.rendernode=/dev/dri/renderD128 \
         --destroy-on-exit \
         --extra-args="ip=dhcp autoinstall ds=nocloud-net;s=http://192.168.120.1:3003/" \
         --autostart
@@ -186,6 +187,15 @@
       ansible.builtin.shell:
         cmd: virsh start obs
       tags: configure_obs_vm
+
+  rescue:
+    - name: remove partially created vm
+      ansible.builtin.shell:
+        cmd: virsh destroy obs || true && virsh undefine obs --remove-all-storage
+
+    - name: end play
+      ansible.builtin.fail:
+        msg: The obs vm was unable to start. Aborting.
 
   always:
     - name: kill cloud data http.server

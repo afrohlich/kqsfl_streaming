@@ -11,5 +11,11 @@ autoinstall:
     authorized_keys:
       - "{{streambox_obs_admin_user_pubkey}}"
   late-commands:
-    - curtin in-target -- echo "{{streambox_obs_admin_user}} ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/ansible-init
+    - |
+      curtin in-target -- sh -c '
+        printf "%s\n" "stream-admin ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/ansible-init &&
+        chown root:root /etc/sudoers.d/ansible-init &&
+        chmod 0440 /etc/sudoers.d/ansible-init &&
+        visudo -cf /etc/sudoers
+      '
     - curtin in-target -- touch /my-cloud-init-done
