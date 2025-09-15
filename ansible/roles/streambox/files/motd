@@ -1,0 +1,11 @@
+---------------------
+Welcome to Streambox
+---------------------
+Essential services are:
+- ngrok.service
+- var-opt-obs_server.automount
+- libvirtd.service
+- docker.service
+
+There is a libvirt vm and network running the obs server. Can be managed with virsh
+There is a docker compose stack at /etc/docker/compose/streambox
