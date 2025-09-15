@@ -113,7 +113,7 @@ services:
     volumes:
       - ./alloy/:/etc/alloy/
       - /var/run/docker.sock:/var/run/docker.sock
-    command: run --server.http.listen-addr=172.20.0.1:12345 --storage.path=/var/lib/alloy/data /etc/alloy/config
+    command: run --server.http.listen-addr=0.0.0.0:12345 --storage.path=/var/lib/alloy/data /etc/alloy/config
     depends_on:
       - loki
     networks:
