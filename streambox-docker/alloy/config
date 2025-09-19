@@ -15,6 +15,21 @@ discovery.relabel "streambox" {
 	}
 }
 
+loki.source.syslog "streambox" {
+  listener {
+    address  = "0.0.0.0:10514"
+    labels   = { component = "loki.source.syslog", protocol = "tcp" }
+  }
+
+  listener {
+    address  = "0.0.0.0:10514"
+    protocol = "udp"
+    labels   = { component = "loki.source.syslog", protocol = "udp"}
+  }
+
+  forward_to       = [loki.process.streambox.receiver]
+}
+
 // This component is responsible for collecting logs from the discovered containers
 loki.source.docker "streambox" {
 	host             = "unix:///var/run/docker.sock"

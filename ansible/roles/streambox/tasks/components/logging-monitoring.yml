@@ -1,0 +1,21 @@
+- name: streambox configure telegraf
+  block:
+    - name: streambox install telegraf
+      ansible.builtin.shell: |
+        curl --silent --location -O https://repos.influxdata.com/influxdata-archive.key
+        gpg --show-keys --with-fingerprint --with-colons ./influxdata-archive.key 2>&1 \
+        | grep -q '^fpr:\+24C975CBA61A024EE1B631787C3D57159FC2F927:$' \
+        && cat influxdata-archive.key \
+        | gpg --dearmor \
+        | tee /etc/apt/keyrings/influxdata-archive.gpg > /dev/null \
+        && echo 'deb [signed-by=/etc/apt/keyrings/influxdata-archive.gpg] https://repos.influxdata.com/debian stable main' \
+        | tee /etc/apt/sources.list.d/influxdata.list
+        apt-get update && sudo apt-get install telegraf
+      
+
+- name: streambox configure log exporting
+  block:
+    - name: streambox deploy syslog export config
+      ansible.builtin.template:
+        src: rsyslog-export-alloy.conf
+        dest: /etc/rsyslog/60-alloy-export.conf

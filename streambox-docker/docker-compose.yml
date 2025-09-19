@@ -15,7 +15,8 @@ services:
       - streaming_network
     extra_hosts:
       - "host.docker.internal:172.20.0.1"
-
+    env_file:
+      - ./web-server/web-server.env
   restreamer:
     image: datarhei/restreamer:latest
     container_name: restreamer
@@ -42,6 +43,8 @@ services:
     container_name: dns-server
     restart: unless-stopped
     ports:
+      - "127.0.0.1:53:53/udp"
+      - "127.0.0.1:53:53/tcp"
       - "172.20.0.1:53:53/udp"
       - "172.20.0.1:53:53/tcp"
       - "172.20.0.1:5380:8080"
@@ -121,6 +124,18 @@ services:
     extra_hosts:
       - "host.docker.internal:172.20.0.1"
 
+  influxdb:
+    image: influxdb:latest
+    container_name: influxdb2
+    ports:
+      - "172.20.0.1:8086:8086"
+    volumes:
+      - influxdb_data:/var/lib/influxdb2 # Mount a named volume for data persistence
+    env_file:
+      - ./influxdb/influxdb.env
+
+    restart: unless-stopped
+
   lldap:
     image: lldap/lldap:stable
     ports:
@@ -177,5 +192,6 @@ volumes:
   lldap_data:
   grafana_data:
   loki_data:
+  influxdb_data: # Define the named volume
   caddy_data:
   caddy_config:
