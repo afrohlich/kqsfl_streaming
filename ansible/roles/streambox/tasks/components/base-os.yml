@@ -36,6 +36,19 @@
       - snapd
     update_cache: true
 
+- name: streambox install essential pip packages
+  ansible.builtin.pip:
+    extra_args: "--break-system-packages"
+    name:
+      - pipx
+
+- name: obs studio cli install
+  community.general.pipx:
+    name: glances[all]
+    global: true
+    include_injected: false
+    state: install
+
 - name: streambox set timezone
   community.general.timezone:
     name: "{{streambox_timezone}}"

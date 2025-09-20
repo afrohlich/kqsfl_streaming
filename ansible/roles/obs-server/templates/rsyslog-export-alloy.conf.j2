@@ -1,0 +1,8 @@
+*.*  action(type="omfwd"
+            target="172.20.0.1"
+            port="10514"
+            protocol="tcp"
+            action.resumeRetryCount="100"
+            queue.type="linkedList" queue.size="10000"
+            Template="RSYSLOG_SyslogProtocol23Format"
+      )
