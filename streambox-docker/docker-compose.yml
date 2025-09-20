@@ -136,6 +136,17 @@ services:
 
     restart: unless-stopped
 
+  glances:
+    image: nicolargo/glances:latest-full
+    container_name: glances
+    ports:
+      - 172.20.0.1:61208:61208/tcp
+      - 172.20.0.1:61209:61209/tcp
+    environment:
+      - GLANCES_OPT="-w"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
   lldap:
     image: lldap/lldap:stable
     ports:

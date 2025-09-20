@@ -3,7 +3,7 @@
     {
       "name": "DS_INFLUXDB",
       "label": "InfluxDB",
-      "description": "",
+      "description": "https://grafana.com/grafana/dashboards/16740-influx-general-system-stats/",
       "type": "datasource",
       "pluginId": "influxdb",
       "pluginName": "InfluxDB"
