@@ -17,15 +17,20 @@ autoinstall:
     - wireless-tools
   late-commands:
     - |
-      cat > /target/etc/netplan/99-wifi.yaml.template << NETPLAN
-      network:
-        version: 2
-        wifis:
-          wlo1:
-            access-points:
-              "SSID_HERE":
-                password: "PASSWORD"
-            dhcp4: true
-      NETPLAN
+      curtin in-target -- sh -c '
+        cat > /etc/netplan/99-wifi.yaml.template << NETPLAN
+        network:
+          version: 2
+            ethernets:
+          enp1s0:
+            dhcp4: yes
+          wifis:
+            wlo1:
+              access-points:
+                "SSID_HERE":
+                  password: "PASSWORD"
+              dhcp4: true
+        NETPLAN
+      '
       
-      chmod 600 /etc/netplan/99-wifi.yaml.template
+    - chmod 600 /etc/netplan/99-wifi.yaml.template

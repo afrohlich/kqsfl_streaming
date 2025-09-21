@@ -8,12 +8,12 @@ autoinstall:
   ssh:
     install-server: yes
     allow-pw: yes
-    authorized_keys:
+    authorized-keys:
       - "{{streambox_obs_admin_user_pubkey}}"
   late-commands:
     - |
       curtin in-target -- sh -c '
-        printf "%s\n" "{{streambox_obs_admin_user}} ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/ansible-init &&
+        echo "{{streambox_obs_admin_user}} ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/ansible-init &&
         chown root:root /etc/sudoers.d/ansible-init &&
         chmod 0440 /etc/sudoers.d/ansible-init &&
         visudo -cf /etc/sudoers

@@ -32,8 +32,9 @@ streambox_github_token: "{{ undef() }}" # Must set before role execution
 
 streambox_ngrok_token: "{{ undef() }}" # Must set before role execution
 
-streambox_influxdb_token: "{{ undef() }}"
 streambox_influxdb_org_name: "streambox"
+streambox_influxdb_admin_password: "{{ undef() }}"
+streambox_influxdb_token: "{{ undef() }}"
 
 streambox_vnc_user: "{{ stream_admin_user }}" # Must set before role execution
 streambox_vnc_password: "{{ undef() }}" # Must set before role execution

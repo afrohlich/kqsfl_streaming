@@ -1,10 +1,13 @@
 [Unit]
 Description=kasmvnc
-After=network.target graphical.target lightdm.service
-Requires=graphical.target
+After=network.target graphical.target
+Requires=lightdm.service
+ConditionPathExists=/tmp/.X11-unix/X0
+ConditionPathExists=/home/{{kasmvnc_user}}/.Xauthority
 
 [Service]
 User={{kasmvnc_user}}
+ExecPreStart=/bin/sleep 5
 ExecStart=/usr/bin/vncserver :1 {{ '-disableBasicAuth' if not kasmvnc_basic_auth }}
 # ExecStop unnecessary if not using "-fg" option and using "Type=forking"
 ExecStop=/usr/bin/vncserver -kill :1

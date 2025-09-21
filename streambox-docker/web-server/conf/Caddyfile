@@ -45,9 +45,9 @@ http://localhost:80, https://streambox.lan:443 {
     }
   }
 
-  redir /logs /logs/
-  handle /logs/* {
-    reverse_proxy https://loki:3100 {
+  redir /system /system/
+  handle /system/* {
+    reverse_proxy https://glances:61208 {
       transport http {
         tls_insecure_skip_verify
       }

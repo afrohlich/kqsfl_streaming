@@ -17,6 +17,7 @@ services:
       - "host.docker.internal:172.20.0.1"
     env_file:
       - ./web-server/web-server.env
+
   restreamer:
     image: datarhei/restreamer:latest
     container_name: restreamer
@@ -58,13 +59,12 @@ services:
   olivetin:
     # https://docs.olivetin.app/install-compose.html
     image: jamesread/olivetin
-
+    restart: unless-stopped
     container_name: olivetin
     volumes:
       - ./olivetin/config:/config
-    expose:
+    ports:
       - "172.20.0.1:1337:1337"
-    restart: unless-stopped
     networks:
       - streaming_network
     extra_hosts:
@@ -108,6 +108,7 @@ services:
 
   alloy:
     image: grafana/alloy:v1.7.5
+    restart: unless-stopped
     container_name: alloy
     ports:
       - "172.20.0.1:12345:12345"
@@ -126,6 +127,7 @@ services:
 
   influxdb:
     image: influxdb:latest
+    restart: unless-stopped
     container_name: influxdb2
     ports:
       - "172.20.0.1:8086:8086"
@@ -134,10 +136,9 @@ services:
     env_file:
       - ./influxdb/influxdb.env
 
-    restart: unless-stopped
-
   glances:
     image: nicolargo/glances:latest-full
+    restart: unless-stopped
     container_name: glances
     ports:
       - 172.20.0.1:61208:61208/tcp
@@ -149,6 +150,8 @@ services:
 
   lldap:
     image: lldap/lldap:stable
+    restart: unless-stopped
+    container_name: lldap
     ports:
       # For LDAP, not recommended to expose, see Usage section.
       #- "3890:3890"

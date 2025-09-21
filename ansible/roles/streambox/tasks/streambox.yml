@@ -21,10 +21,6 @@
     rclone_mount_user: "{{streambox_admin_user}}"
   tags: streambox_configure_rclone_backend
 
-- name: streambox configure libvirt hypervisor for obs server
-  import_tasks: components/obs-libvirt.yml
-  when: streambox_obs_virtualized
-
 - name: streambox configure obs-server
   when: false  # disabled for now
   block:
@@ -75,3 +71,10 @@
             enabled: true
             daemon_reload: true
             state: restarted
+
+- name: strambox configure logging and monitoring
+  import_tasks: components/logging-monitoring.yml
+
+- name: streambox configure libvirt hypervisor for obs server
+  import_tasks: components/obs-libvirt.yml
+  when: streambox_obs_virtualized

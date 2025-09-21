@@ -53,8 +53,26 @@
       block:
         - name: streambox deploy web-server env_file
           ansible.builtin.template:
-            src: webserver.env.j2
+            src: docker_env_files/web-server.env.j2
             dest: /etc/docker/compose/streambox/web-server/web-server.env
+            mode: '0644'
+            owner: "{{streambox_admin_user}}"
+            group: "{{streambox_admin_user}}"
+            backup: yes
+
+        - name: streambox deploy grafana env_file
+          ansible.builtin.template:
+            src: docker_env_files/grafana.env.j2
+            dest: /etc/docker/compose/streambox/grafana/grafana.env
+            mode: '0644'
+            owner: "{{streambox_admin_user}}"
+            group: "{{streambox_admin_user}}"
+            backup: yes
+
+        - name: streambox deploy influxdb env_file
+          ansible.builtin.template:
+            src: docker_env_files/influxdb.env.j2
+            dest: /etc/docker/compose/streambox/influxdb/influxdb.env
             mode: '0644'
             owner: "{{streambox_admin_user}}"
             group: "{{streambox_admin_user}}"

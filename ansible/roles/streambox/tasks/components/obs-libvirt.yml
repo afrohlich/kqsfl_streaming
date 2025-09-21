@@ -22,7 +22,7 @@
           - libgbm1
           - virtiofsd
 
-    - name: create vm data directories
+    - name: streambox create vm data directories
       ansible.builtin.file:
         path: "{{ item }}"
         state: directory
@@ -98,7 +98,7 @@
   block:
     - name: streambox copy obs server configs
       template:
-        src: "{{item}}.j2"
+        src: "vm_autoinstall/{{item}}.j2"
         dest: /usr/local/share/vm-configs/templates/obs-server/{{item}}
       loop:
         - user-data
