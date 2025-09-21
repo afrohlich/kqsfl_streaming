@@ -20,6 +20,7 @@
     - "{{ lookup('env', 'HOME') }}/streambox_credentials.yml"
   vars:
     obsserver_user: "{{streambox_admin_user}}"
+    obsserver_is_virtualized: "{{streambox_obs_virtualized}}"
 
   pre_tasks:
     - name: wait for vms
