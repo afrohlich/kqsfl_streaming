@@ -55,6 +55,8 @@ services:
       - NET_ADMIN
     networks:
       - streaming_network
+    extra_hosts:
+      - "host.docker.internal:172.20.0.1"
 
   olivetin:
     # https://docs.olivetin.app/install-compose.html
@@ -135,7 +137,11 @@ services:
       - influxdb_data:/var/lib/influxdb2 # Mount a named volume for data persistence
     env_file:
       - ./influxdb/influxdb.env
-
+    networks:
+      - streaming_network
+    extra_hosts:
+      - "host.docker.internal:172.20.0.1"
+ 
   glances:
     image: nicolargo/glances:latest-full
     restart: unless-stopped
@@ -144,9 +150,13 @@ services:
       - 172.20.0.1:61208:61208/tcp
       - 172.20.0.1:61209:61209/tcp
     environment:
-      - GLANCES_OPT="-w"
+      - "GLANCES_OPT=-w"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - streaming_network
+    extra_hosts:
+      - "host.docker.internal:172.20.0.1"
 
   lldap:
     image: lldap/lldap:stable
