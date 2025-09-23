@@ -22,9 +22,8 @@ http://localhost:80, https://streambox.lan:443 {
   }
 
   @base-obs-vnc-path path /obs-vnc /obs-vnc/ /obs-vnc/index.html 
-  redir @base-obs-vnc-path /obs-vnc/vnc.html?path=/obs-vnc/websockify
-  # TODO: inject script to force local storage to look for the correct websockify path
-  #    instead of forcing a GET param
+  redir @base-obs-vnc-path /obs-vnc/vnc.html
+  redir /websockify /obs-vnc/websockify
   handle /obs-vnc/* {
     uri query path /obs-vnc/websockify
     reverse_proxy https://192.168.120.101:8444 {

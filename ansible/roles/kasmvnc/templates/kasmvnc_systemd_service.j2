@@ -2,8 +2,6 @@
 Description=kasmvnc
 After=network.target graphical.target
 Requires=lightdm.service
-ConditionPathExists=/tmp/.X11-unix/X0
-ConditionPathExists=/home/{{kasmvnc_user}}/.Xauthority
 
 [Service]
 User={{kasmvnc_user}}
