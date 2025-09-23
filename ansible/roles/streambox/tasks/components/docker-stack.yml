@@ -78,6 +78,15 @@
             group: "{{streambox_admin_user}}"
             backup: yes
 
+        - name: streambox deploy glances config
+          ansible.builtin.template:
+            src: glances.conf.j2
+            dest: /etc/docker/compose/streambox/glances/glances.conf
+            mode: '0644'
+            owner: "{{streambox_admin_user}}"
+            group: "{{streambox_admin_user}}"
+            backup: yes
+
     - name: streambox build and download docker images
       community.docker.docker_compose_v2_pull:
         project_src: /etc/docker/compose/streambox/

@@ -154,6 +154,7 @@ services:
     environment:
       - "GLANCES_OPT=-w"
     volumes:
+      - ./glances/glances.conf:/etc/glances/glances.conf
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - streaming_network

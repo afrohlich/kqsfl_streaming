@@ -19,3 +19,8 @@
       ansible.builtin.template:
         src: rsyslog-export-alloy.conf.j2
         dest: /etc/rsyslog.d/60-alloy-export.conf
+
+- name: streambox configure glances
+  ansible.builtin.template:
+    src: glances.conf.j2
+    dest: /opt/pipx/venvs/glances/share/doc/glances/glances.conf
