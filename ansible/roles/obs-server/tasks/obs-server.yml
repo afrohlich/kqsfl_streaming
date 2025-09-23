@@ -31,15 +31,15 @@
   ansible.builtin.file:
     state: directory
     dest: "/home/{{obsserver_user}}/.config/autostart/"
-    owner: {{obsserver_user}}
-    group: {{obsserver_user}}
+    owner: "{{obsserver_user}}"
+    group: "{{obsserver_user}}"
 
 - name: obs studio autostart
   ansible.builtin.copy:
     src: obs.desktop
     dest: "/home/{{obsserver_user}}/.config/autostart/obs.desktop"
-    owner: {{obsserver_user}}
-    group: {{obsserver_user}}
+    owner: "{{obsserver_user}}"
+    group: "{{obsserver_user}}"
     mode: '0755'
 
 - name: obs studio import configuration
@@ -60,7 +60,7 @@
     - name: obsserver copy management scripts
       ansible.builtin.copy:
         src: scripts/
-        dest: /home/{{obsserver_user}}/bin/
+        dest: "/home/{{obsserver_user}}/bin/"
 
     - name: obsserver create crontab jobs to start server
       become: true
