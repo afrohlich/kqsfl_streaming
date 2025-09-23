@@ -17,5 +17,5 @@
   block:
     - name: streambox deploy syslog export config
       ansible.builtin.template:
-        src: rsyslog-export-alloy.conf
-        dest: /etc/rsyslog/60-alloy-export.conf
+        src: rsyslog-export-alloy.conf.j2
+        dest: /etc/rsyslog.d/60-alloy-export.conf

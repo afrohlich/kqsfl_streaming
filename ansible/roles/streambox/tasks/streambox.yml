@@ -74,6 +74,7 @@
 
 - name: strambox configure logging and monitoring
   import_tasks: components/logging-monitoring.yml
+  tags: streambox_configure_monitoring
 
 - name: streambox configure libvirt hypervisor for obs server
   import_tasks: components/obs-libvirt.yml

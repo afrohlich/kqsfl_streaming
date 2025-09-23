@@ -95,4 +95,11 @@
         path: /var/opt/obs-server/
         src: obs_data
         fstype: virtiofs
-        state: present      
+        state: present
+
+- name: streambox configure log exporting
+  block:
+    - name: streambox deploy syslog export config
+      ansible.builtin.template:
+        src: rsyslog-export-alloy.conf
+        dest: /etc/rsyslog/60-alloy-export.conf

@@ -40,14 +40,14 @@ loki.source.docker "streambox" {
 }
 
 // This component is responsible for processing the logs (In this case adding static labels)
-// loki.process "streambox" {
+loki.process "streambox" {
 //    stage.static_labels {
 //    values = {
 //      env = "production",
 //    }
 //}
-//    forward_to = [loki.write.streambox.receiver]
-//}
+    forward_to = [loki.write.streambox.receiver]
+}
 
 // This component is responsible for writing the logs to Loki
 loki.write "streambox" {
