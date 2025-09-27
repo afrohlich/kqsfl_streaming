@@ -1,4 +1,6 @@
 services:
+
+##  Web Portal
   web-server:
     image: caddy:latest
     container_name: web-server
@@ -57,6 +59,35 @@ services:
       - streaming_network
     extra_hosts:
       - "host.docker.internal:172.20.0.1"
+
+  dagu:
+    image: ghcr.io/dagu-org/dagu:latest
+    container_name: dagu
+    hostname: dagu
+    ports:
+      - "8525:8080"
+    entrypoint: [] # Override any default entrypoint for Docker in Docker (DinD) support
+    command: ["dagu", "start-all"]
+    environment:
+      - DAGU_HOST=0.0.0.0 # Bind inside container
+      - DAGU_PORT=8080 # Web/UI port inside container
+      - DAGU_DEBUG=true # More verbose logs during dev
+      - DAGU_DAGS_DIR=/var/lib/dagu/dags
+      - DAGU_TZ=America/New_York
+      - DAGU_BASE_PATH=/shortcuts
+      # User and Group IDs (optional, for file permissions)
+      # - PUID=1000 # optional. default is 1000
+      # - PGID=1000 # optional. default is 1000
+
+    volumes:
+      - dagu-data:/var/lib/dagu
+      - ./dags:/var/lib/dagu/dags:ro
+
+    user: "0:0" # Run as root for Docker in Docker (DinD) support
+
+volumes:
+  dagu-data:
+    driver: local
 
   olivetin:
     # https://docs.olivetin.app/install-compose.html
