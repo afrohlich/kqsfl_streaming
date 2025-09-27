@@ -65,7 +65,7 @@ services:
     container_name: dagu
     hostname: dagu
     ports:
-      - "8525:8080"
+      - "172.20.0.18525:8080"
     entrypoint: [] # Override any default entrypoint for Docker in Docker (DinD) support
     command: ["dagu", "start-all"]
     environment:
@@ -81,7 +81,7 @@ services:
 
     volumes:
       - dagu-data:/var/lib/dagu
-      - ./dags:/var/lib/dagu/dags:ro
+      - ./dagu/dags:/var/lib/dagu/dags:ro
 
     user: "0:0" # Run as root for Docker in Docker (DinD) support
 
@@ -208,9 +208,9 @@ volumes:
       # Alternatively, you can mount a local folder
       # - "./lldap_data:/data"
     environment:
-      - UID=####
-      - GID=####
-      - TZ=####/####
+      #- UID=1000
+      #- GID=1000
+      - TZ=America/New_York
       - LLDAP_JWT_SECRET=REPLACE_WITH_RANDOM
       - LLDAP_KEY_SEED=REPLACE_WITH_RANDOM
       - LLDAP_LDAP_BASE_DN=dc=example,dc=com
